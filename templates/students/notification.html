@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Notice Board | RCTI{% endblock %}
+
+{% block content %}
+{% include 'partials/student_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+    
+    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40 flex-shrink-0">
+        <div class="flex items-center gap-4">
+            <button id="menuBtn" class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+            <h2 class="text-xl font-bold font-tech text-slate-800">Notice Board</h2>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <span class="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
+                Sem {{ student.semester }}
+            </span>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6 md:p-8 custom-scroll">
+        
+        <div class="max-w-4xl mx-auto space-y-4">
+            
+            {% for note in notifications %}
+            <div class="relative overflow-hidden bg-white rounded-2xl p-6 border transition-all duration-200 shadow-sm hover:shadow-md
+                {% if note.priority == 'HIGH' %}
+                    border-red-100 bg-red-50/10
+                {% else %}
+                    border-slate-200
+                {% endif %}">
+                
+                {% if note.priority == 'HIGH' %}
+                <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                    Urgent
+                </div>
+                {% endif %}
+
+                <div class="flex gap-5 items-start">
+                    
+                    <div class="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-xl
+                        {% if note.priority == 'HIGH' %}
+                            bg-red-50 text-red-500
+                        {% elif note.audience == 'ALL' %}
+                            bg-purple-50 text-purple-500
+                        {% else %}
+                            bg-blue-50 text-blue-500
+                        {% endif %}">
+                        
+                        {% if note.priority == 'HIGH' %}
+                            <i class="fa-solid fa-bullhorn animate-pulse"></i>
+                        {% elif note.audience == 'ALL' %}
+                            <i class="fa-solid fa-globe"></i>
+                        {% else %}
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex-1">
+                        <h3 class="font-bold text-slate-800 text-lg mb-2 leading-tight">{{ note.title }}</h3>
+                        
+                        <div class="text-slate-600 text-sm leading-relaxed mb-4 whitespace-pre-line">
+                            {{ note.message }}
+                        </div>
+                        
+                        <div class="flex items-center gap-4 border-t border-slate-100 pt-3 mt-2">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-regular fa-clock"></i> {{ note.created_at|date:"M d, Y • h:i A" }}
+                            </span>
+                            
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded border 
+                                {% if note.audience == 'ALL' %}bg-purple-50 text-purple-600 border-purple-100
+                                {% else %}bg-blue-50 text-blue-600 border-blue-100{% endif %}">
+                                To: {{ note.get_audience_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            
+            <div class="flex flex-col items-center justify-center py-20 text-center">
+                <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                    <i class="fa-regular fa-clipboard text-4xl"></i>
+                </div>
+                <h3 class="text-slate-800 font-bold text-lg">No Notices</h3>
+                <p class="text-slate-400 text-sm max-w-xs mx-auto mt-1">There are no announcements for you right now.</p>
+            </div>
+            {% endfor %}
+
+        </div>
+        
+        <div class="h-10"></div>
+    </main>
+</div>
+{% endblock %}

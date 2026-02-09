@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}My Profile | Student - RCTI{% endblock %}
+
+{% block content %}
+<style>
+    /* Background Mesh */
+    .bg-mesh {
+        background-color: #f8fafc;
+        background-image:
+            radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.05) 0, transparent 50%),
+            radial-gradient(at 0% 100%, rgba(6, 182, 212, 0.05) 0, transparent 50%);
+        background-attachment: fixed;
+    }
+
+    /* Glassmorphism */
+    .glass-nav {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.1);
+        transform: translateY(-2px);
+    }
+
+    /* Profile Avatar Ring */
+    .avatar-ring {
+        background: conic-gradient(from 0deg, #3b82f6, #06b6d4, #3b82f6);
+        padding: 4px;
+        border-radius: 50%;
+        animation: spin 10s linear infinite;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Digital ID Card */
+    .digital-id {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+    }
+
+    .font-code {
+        font-family: 'Consolas', 'Fira Code', monospace;
+    }
+</style>
+
+{% include 'partials/student_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative">
+    <nav class="w-full z-50 glass-nav">
+        <div class="px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-3">
+                    <button id="menuBtn"
+                        class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                    <div>
+                        <h1 class="font-bold text-lg text-slate-900 font-tech">Student Profile</h1>
+                        <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Manage Account</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'change_password' %}"
+                        class="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-bold hover:bg-blue-100 transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-key"></i>
+                        <span class="hidden sm:inline">Change Password</span>
+                    </a>
+                    <a href="{% url 'logout' %}"
+                        class="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span class="hidden sm:inline">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto py-12 px-4 max-w-4xl mx-auto w-full custom-scroll">
+        <div class="space-y-8">
+            <!-- Profile Card -->
+            <div class="glass-card rounded-3xl p-8 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-blue-600 to-cyan-500"></div>
+
+                <div class="relative z-10 -mt-12 mb-4 flex justify-center">
+                    <div class="relative">
+                        <div class="avatar-ring">
+                            <div
+                                class="w-32 h-32 rounded-full border-4 border-white bg-blue-600 flex items-center justify-center text-white text-4xl font-bold">
+                                {{ student.user.first_name|slice:":1" }}{{ student.user.last_name|slice:":1" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold font-tech text-slate-900">{{ student.user.get_full_name }}</h2>
+                <p class="text-sm text-slate-500 font-medium mb-4">{{ student.department.name }} Sem
+                    {{ student.semester }}</p>
+
+                <div class="border-t border-slate-100 pt-6 text-left grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Enrollment No</p>
+                        <p class="text-sm font-code text-slate-700">{{ student.enrollment_number }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Email</p>
+                        <p class="text-sm font-code text-slate-700">{{ student.user.email }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Division</p>
+                        <p class="text-sm font-code text-slate-700">{{ student.division }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Academic Year</p>
+                        <p class="text-sm font-code text-slate-700">2025-2026</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="bg-white/50 border-t border-slate-200 py-6 text-center mt-12 rounded-xl">
+            <p class="text-xs text-slate-400">© 2026 Dept of Information Technology, RC Technical Institute.</p>
+        </footer>
+    </main>
+</div>
+
+{% endblock %}

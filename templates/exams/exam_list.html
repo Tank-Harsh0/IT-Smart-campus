@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/admin_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+    
+    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <button
+    id="menuBtn"
+    class="p-2 rounded-lg hover:bg-slate-100"
+    aria-label="Open sidebar"
+  >
+    <i class="fa-solid fa-bars text-xl"></i>
+  </button>
+        <h2 class="text-xl font-bold font-tech text-slate-800">Exam Management</h2>
+        <a href="{% url 'create_exam' %}" class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition shadow-lg">
+            <i class="fa-solid fa-plus mr-2"></i> Schedule Exam
+        </a>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8 custom-scroll">
+        <div class="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 border-b border-slate-100">
+                    <tr>
+                        <th class="p-4 pl-6 text-xs font-bold text-slate-500 uppercase">Exam Name</th>
+                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Type</th>
+                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Semester</th>
+                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Duration</th>
+                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    {% for exam in exams %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 pl-6 font-bold text-slate-800">{{ exam.name }}</td>
+                        <td class="p-4">
+                            <span class="px-2 py-1 bg-indigo-50 text-indigo-600 rounded text-[10px] font-bold uppercase">{{ exam.get_exam_type_display }}</span>
+                        </td>
+                        <td class="p-4 font-bold text-slate-600">Sem {{ exam.semester }}</td>
+                        <td class="p-4 text-slate-500">{{ exam.start_date|date:"M d" }} - {{ exam.end_date|date:"M d, Y" }}</td>
+                        <td class="p-4">
+                            {% if exam.is_active %}
+                                <span class="w-2 h-2 bg-green-500 rounded-full inline-block mr-2"></span> Active
+                            {% else %}
+                                <span class="w-2 h-2 bg-slate-300 rounded-full inline-block mr-2"></span> Closed
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="p-8 text-center text-slate-400">No exams scheduled.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+{% endblock %}

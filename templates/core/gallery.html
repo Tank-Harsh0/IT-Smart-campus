@@ -1,0 +1,155 @@
+{% extends 'base_public.html' %}
+
+{% block title %}Event Gallery | IT Department - RCTI{% endblock %}
+
+{% block extra_css %}
+.glass-overlay {
+background: rgba(255, 255, 255, 0.1);
+backdrop-filter: blur(8px);
+border: 1px solid rgba(255, 255, 255, 0.3);
+box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.gallery-item {
+position: relative;
+overflow: hidden;
+border-radius: 1.5rem;
+transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+background: white;
+}
+
+.gallery-item:hover {
+transform: translateY(-5px);
+box-shadow: 0 20px 40px -12px rgba(37, 99, 235, 0.2);
+}
+
+.gallery-img {
+transition: transform 0.7s ease;
+width: 100%;
+height: 100%;
+object-fit: cover;
+}
+
+.gallery-item:hover .gallery-img {
+transform: scale(1.1);
+}
+
+.caption-slide {
+transform: translateY(100%);
+transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-item:hover .caption-slide {
+transform: translateY(0);
+}
+{% endblock %}
+
+{% block content %}
+<header class="pt-32 pb-16 px-4">
+    <div class="max-w-7xl mx-auto">
+        <div
+            class="relative rounded-[2.5rem] overflow-hidden aspect-[21/10] md:aspect-[21/8] shadow-2xl shadow-blue-500/10 group reveal active">
+            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"
+                class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-80">
+            </div>
+
+            <div class="absolute bottom-0 left-0 p-8 md:p-16 w-full md:w-3/4">
+                <span
+                    class="px-3 py-1 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold uppercase tracking-widest rounded-full mb-4 inline-block">
+                    Featured Event
+                </span>
+                <h1 class="text-4xl md:text-6xl font-bold font-tech text-white mb-4 leading-tight">
+                    Techno-X 2025: <br>Innovation Unleashed
+                </h1>
+                <p class="text-slate-200 text-lg mb-8 max-w-xl">
+                    A celebration of code, creativity, and competition. Witnessing 500+ participants in Hackathons,
+                    Robo-Wars, and Gaming.
+                </p>
+                <button
+                    class="px-6 py-3 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30 flex items-center gap-2">
+                    View Full Album <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<section class="pb-24 px-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
+
+            <div class="gallery-item md:row-span-2 reveal active">
+                <img src="https://images.unsplash.com/photo-1544531586-fde5298cdd40?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    class="gallery-img">
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent flex flex-col justify-end p-6 caption-slide">
+                    <span class="text-blue-400 text-xs font-bold uppercase tracking-wider mb-1">Seminar</span>
+                    <h3 class="text-xl font-bold text-white">Expert Talk on AI</h3>
+                    <p class="text-slate-300 text-sm mt-2">Dr. Sharma on Generative AI Future.</p>
+                </div>
+            </div>
+
+            <div class="gallery-item md:col-span-2 reveal active">
+                <img src="https://images.unsplash.com/photo-1533174072545-e8d4aa97edf9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                    class="gallery-img">
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent flex flex-col justify-end p-6 caption-slide">
+                    <span class="text-pink-400 text-xs font-bold uppercase tracking-wider mb-1">Cultural</span>
+                    <h3 class="text-xl font-bold text-white">Navratri Celebration</h3>
+                </div>
+            </div>
+
+            <div class="gallery-item reveal active">
+                <img src="https://images.unsplash.com/photo-1581092921461-e8d4aa97edf9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                    class="gallery-img">
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent flex flex-col justify-end p-6 caption-slide">
+                    <span class="text-cyan-400 text-xs font-bold uppercase tracking-wider mb-1">Workshop</span>
+                    <h3 class="text-xl font-bold text-white">Robotics Lab</h3>
+                </div>
+            </div>
+
+            <div class="gallery-item reveal active">
+                <img src="https://images.unsplash.com/photo-1531415074968-036ba1b575da?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                    class="gallery-img">
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent flex flex-col justify-end p-6 caption-slide">
+                    <span class="text-green-400 text-xs font-bold uppercase tracking-wider mb-1">Sports</span>
+                    <h3 class="text-xl font-bold text-white">Annual Sports Day</h3>
+                </div>
+            </div>
+
+            <div class="gallery-item md:col-span-2 reveal active">
+                <img src="https://images.unsplash.com/photo-1504384308090-c54be3855833?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                    class="gallery-img">
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent flex flex-col justify-end p-6 caption-slide">
+                    <span class="text-blue-400 text-xs font-bold uppercase tracking-wider mb-1">Tech Fest</span>
+                    <h3 class="text-xl font-bold text-white">24-Hour Code-a-Thon</h3>
+                    <p class="text-slate-300 text-sm mt-2">Solving Smart City challenges overnight.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="text-center mt-12">
+            <button
+                class="px-8 py-3 bg-white border border-slate-200 rounded-full text-slate-700 font-bold hover:bg-slate-900 hover:text-white transition-all shadow-sm">
+                Load More Memories
+            </button>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) { entry.target.classList.add('active'); }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+{% endblock %}

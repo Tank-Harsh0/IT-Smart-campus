@@ -1,0 +1,69 @@
+<!-- Public Navigation Bar Partial -->
+<nav class="fixed w-full z-50 glass-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center text-white text-lg shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-laptop-code"></i>
+                </div>
+                <div class="leading-tight">
+                    <h1 class="font-bold text-lg text-slate-900 font-tech tracking-tight">
+                        IT Department
+                    </h1>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        RC Technical Institute
+                    </p>
+                </div>
+            </div>
+
+            <div class="hidden md:flex items-center gap-8">
+                <a href="{% url 'index' %}"
+                    class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Home</a>
+                <a href="{% url 'faculty_public' %}"
+                    class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Faculty</a>
+                <a href="{% url 'curriculum' %}"
+                    class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Curriculum</a>
+                <a href="{% url 'gallery' %}"
+                    class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Gallery</a>
+
+                <a href="{% url 'login' %}"
+                    class="group relative px-6 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium overflow-hidden transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/25">
+                    <span class="relative z-10 flex items-center gap-2">
+                        Portal Login
+                        <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+                    </span>
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobileMenuBtn" class="md:hidden text-2xl text-slate-700">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu (Hidden by default) -->
+        <div id="mobileMenu" class="md:hidden hidden pb-4">
+            <div class="flex flex-col gap-3">
+                <a href="{% url 'index' %}"
+                    class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors py-2">Home</a>
+                <a href="{% url 'faculty_public' %}"
+                    class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors py-2">Faculty</a>
+                <a href="{% url 'curriculum' %}"
+                    class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors py-2">Curriculum</a>
+                <a href="{% url 'gallery' %}"
+                    class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors py-2">Gallery</a>
+                <a href="{% url 'login' %}"
+                    class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg text-center">Portal
+                    Login</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Mobile Menu Toggle Script -->
+<script>
+    document.getElementById('mobileMenuBtn')?.addEventListener('click', function () {
+        document.getElementById('mobileMenu')?.classList.toggle('hidden');
+    });
+</script>

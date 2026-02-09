@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% include 'partials/admin_sidebar.html' %}
+    <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+    
+    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <button
+    id="menuBtn"
+    class="p-2 rounded-lg hover:bg-slate-100"
+    aria-label="Open sidebar"
+  >
+    <i class="fa-solid fa-bars text-xl"></i>
+  </button>
+        <h2 class="text-xl font-bold font-tech text-slate-800">Subject Database</h2>
+        
+        <a href="{% url 'Upload_subjects' %}" class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition">
+            <i class="fa-solid fa-plus mr-2"></i> Add New Subjects
+        </a>
+        
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8 custom-scroll">
+        <div class="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 border-b border-slate-100">
+                    <tr>
+                        <th class="p-4 pl-6 text-xs font-bold text-slate-500 uppercase">Subject Code</th>
+                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Subject Name</th>
+                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Semester</th>
+                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Credits</th>
+                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Type</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    {% for sub in subjects %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 pl-6 font-code font-bold text-slate-600">
+                            <span class="bg-slate-100 px-2 py-1 rounded">{{ sub.code }}</span>
+                        </td>
+                        <td class="p-4 font-bold text-slate-800">{{ sub.name }}</td>
+                        <td class="p-4">
+                            <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase">Sem {{ sub.semester }}</span>
+                        </td>
+                        <td class="p-4 font-bold text-slate-500">{{ sub.credits }}</td>
+                        <td class="p-4">
+                             {% if sub.credits > 4 %}
+                                <span class="text-xs text-blue-600 font-bold">Core</span>
+                            {% else %}
+                                <span class="text-xs text-slate-400 font-bold">Elective</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="p-12 text-center">
+                            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                                <i class="fa-solid fa-book-open text-2xl"></i>
+                            </div>
+                            <h3 class="text-slate-600 font-bold">No Subjects Found</h3>
+                            <p class="text-sm text-slate-400">Upload a CSV to get started.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+{% endblock content %}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/faculty_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+
+    <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40 flex-shrink-0">
+        <div class="flex items-center gap-4">
+            <button id="menuBtn"
+                class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+            <h2 class="text-xl font-bold font-tech text-slate-800">My Profile</h2>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="{% url 'change_password' %}"
+                class="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg hover:bg-blue-100 transition flex items-center shadow-sm">
+                <i class="fa-solid fa-key mr-2"></i> <span class="hidden sm:inline">Change Password</span><span
+                    class="sm:hidden">Password</span>
+            </a>
+            <a href="{% url 'edit_faculty_profile' %}"
+                class="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition flex items-center shadow-sm">
+                <i class="fa-solid fa-pen-to-square mr-2"></i> <span class="hidden sm:inline">Edit Details</span><span
+                    class="sm:hidden">Edit</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll flex justify-center">
+
+        <div
+            class="max-w-4xl w-full bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden h-fit mb-8">
+
+            <div class="p-6 md:p-8 border-b border-slate-100 flex flex-col md:flex-row items-center gap-6">
+                <div
+                    class="w-32 h-32 rounded-full border-4 border-slate-50 overflow-hidden shadow-lg flex-shrink-0 relative bg-white">
+                    {% if faculty.photo %}
+                    <img src="{{ faculty.photo.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full bg-slate-200 flex items-center justify-center text-4xl text-slate-400">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="text-center md:text-left">
+                    <h1 class="text-2xl md:text-3xl font-bold font-tech text-slate-800">{{ request.user.get_full_name }}
+                    </h1>
+                    <p class="text-slate-500 font-bold mt-1 text-sm md:text-base">{{ faculty.designation }}</p>
+                    <span
+                        class="inline-block mt-3 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-100">
+                        {{ faculty.portfolio|default:"Faculty Member" }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="p-0">
+                <div class="divide-y divide-slate-100">
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 p-5 hover:bg-slate-50/50 transition">
+                        <div
+                            class="font-bold text-slate-500 uppercase text-xs tracking-wider mb-1 md:mb-0 flex items-center gap-2">
+                            <i class="fa-solid fa-id-badge text-slate-400"></i> Designation
+                        </div>
+                        <div class="md:col-span-2 font-bold text-slate-800">{{ faculty.designation }}</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 p-5 hover:bg-slate-50/50 transition">
+                        <div
+                            class="font-bold text-slate-500 uppercase text-xs tracking-wider mb-1 md:mb-0 flex items-center gap-2">
+                            <i class="fa-solid fa-graduation-cap text-slate-400"></i> Qualification
+                        </div>
+                        <div class="md:col-span-2 font-bold text-slate-800">{{ faculty.qualification }}</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 p-5 hover:bg-slate-50/50 transition">
+                        <div
+                            class="font-bold text-slate-500 uppercase text-xs tracking-wider mb-1 md:mb-0 flex items-center gap-2">
+                            <i class="fa-solid fa-building text-slate-400"></i> Dept Joining
+                        </div>
+                        <div class="md:col-span-2 font-bold text-slate-800">{{ faculty.dept_joining_date|date:"jS F Y"
+                            }}</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 p-5 hover:bg-slate-50/50 transition">
+                        <div
+                            class="font-bold text-slate-500 uppercase text-xs tracking-wider mb-1 md:mb-0 flex items-center gap-2">
+                            <i class="fa-solid fa-school text-slate-400"></i> Inst. Joining
+                        </div>
+                        <div class="md:col-span-2 font-bold text-slate-800">{{ faculty.institute_joining_date|date:"jS F
+                            Y" }}</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 p-5 hover:bg-slate-50/50 transition">
+                        <div
+                            class="font-bold text-slate-500 uppercase text-xs tracking-wider mb-1 md:mb-0 flex items-center gap-2">
+                            <i class="fa-solid fa-clock text-slate-400"></i> Total Tenor
+                        </div>
+                        <div class="md:col-span-2 font-bold text-slate-800">
+                            {% if faculty.institute_joining_date %}
+                            {{ faculty.institute_joining_date|timesince }}
+                            {% else %}
+                            <span class="text-slate-400 italic">N/A</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 p-5 hover:bg-slate-50/50 transition">
+                        <div
+                            class="font-bold text-slate-500 uppercase text-xs tracking-wider mb-1 md:mb-0 flex items-center gap-2">
+                            <i class="fa-solid fa-lightbulb text-slate-400"></i> Area of Interest
+                        </div>
+                        <div class="md:col-span-2 font-bold text-slate-800 leading-relaxed">{{ faculty.area_of_interest
+                            }}</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 p-5 hover:bg-slate-50/50 transition">
+                        <div
+                            class="font-bold text-slate-500 uppercase text-xs tracking-wider mb-1 md:mb-0 flex items-center gap-2">
+                            <i class="fa-solid fa-chalkboard-user text-slate-400"></i> Courses Taught
+                        </div>
+                        <div class="md:col-span-2 font-bold text-slate-800 leading-relaxed">{{ faculty.courses_taught }}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 p-5 hover:bg-slate-50/50 transition">
+                        <div
+                            class="font-bold text-slate-500 uppercase text-xs tracking-wider mb-1 md:mb-0 flex items-center gap-2">
+                            <i class="fa-solid fa-briefcase text-slate-400"></i> Portfolios
+                        </div>
+                        <div class="md:col-span-2 font-bold text-slate-800">{{ faculty.portfolio }}</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+{% endblock %}

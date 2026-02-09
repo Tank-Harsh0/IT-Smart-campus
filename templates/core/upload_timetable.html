@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/admin_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">   
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center px-8 z-40 shrink-0">
+            <h2 class="text-xl font-bold font-tech text-slate-800 flex items-center gap-3">
+                <i class="fa-regular fa-calendar-plus text-slate-400"></i> Add Timetable Slot
+            </h2>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 custom-scroll">
+            
+            <div class="w-full max-w-none bg-white rounded-[1.5rem] p-8 shadow-sm border border-slate-200">
+                
+                {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for message in messages %}
+                    <div class="p-4 rounded-xl text-sm font-bold flex items-center gap-3 shadow-sm
+                        {% if 'success' in message.tags %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                        {% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">
+                        <i class="fa-solid {% if 'success' in message.tags %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} text-lg"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'upload_timetable' %}" id="timetableForm">
+                    {% csrf_token %}
+
+                    <div class="mb-8">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Session Type</label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {% for radio in form.slot_type %}
+                            <label class="relative flex items-center justify-center gap-3 cursor-pointer bg-slate-50 px-5 py-4 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/30 transition-all duration-200 group w-full">
+                                {{ radio.tag }}
+                                <span class="text-sm font-bold text-slate-700 group-hover:text-indigo-700">{{ radio.choice_label }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2 ml-1">
+                            <i class="fa-solid fa-clock mr-1"></i> Lecture = 1 Hour | Lab = 2 Hours
+                        </p>
+                    </div>
+
+                    <div class="mb-8">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 tracking-wider border-b border-slate-100 pb-2">Academic Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Semester</label>
+                                {{ form.semester }}
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Classroom</label>
+                                {{ form.classroom }}
+                            </div>
+                        </div>
+
+                        <div id="batch_field" class="hidden mt-6 animate-fade-in">
+                            <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-xl w-full">
+                                <label class="block text-xs font-bold text-indigo-600 uppercase mb-2">
+                                    <i class="fa-solid fa-layer-group mr-1"></i> Select Batch (Required for Lab)
+                                </label>
+                                {{ form.specific_batch }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 tracking-wider border-b border-slate-100 pb-2">Schedule</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Day</label>
+                                {{ form.day }}
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Start Time</label>
+                                {{ form.start_time }}
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-slate-600 mb-2">End Time (Auto)</label>
+                                {{ form.end_time }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 tracking-wider border-b border-slate-100 pb-2">Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Subject</label>
+                                {{ form.subject }}
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Faculty</label>
+                                {{ form.faculty }}
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Room Number</label>
+                            {{ form.room_number }}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-indigo-600 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check"></i> Save Timetable Slot
+                    </button>
+
+                </form>
+            </div>
+            
+            <div class="h-10"></div>
+        </main>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- SELECTORS ---
+        const radios = document.querySelectorAll('input[name="slot_type"]');
+        const batchField = document.getElementById('batch_field');
+        const semesterInput = document.getElementById('id_semester');
+        const subjectSelect = document.getElementById('id_subject');
+        const classroomSelect = document.getElementById('id_classroom');
+        const batchSelect = document.getElementById('id_specific_batch');
+        const startTimeInput = document.getElementById('id_start_time');
+        const endTimeInput = document.getElementById('id_end_time');
+
+        // --- 1. TOGGLE BATCH VISIBILITY ---
+        function toggleBatch() {
+            let selected;
+            radios.forEach(r => { if(r.checked) selected = r.value; });
+            
+            if (selected === 'LAB') {
+                batchField.classList.remove('hidden');
+            } else {
+                batchField.classList.add('hidden');
+            }
+            calculateEndTime(); 
+        }
+
+        // --- 2. AUTO TIME CALCULATION ---
+        function calculateEndTime() {
+            const startTime = startTimeInput.value;
+            if (!startTime) return;
+
+            let selectedType;
+            radios.forEach(r => { if(r.checked) selectedType = r.value; });
+            const durationHours = (selectedType === 'LAB') ? 2 : 1;
+
+            const [hours, minutes] = startTime.split(':').map(Number);
+            let newHours = hours + durationHours;
+            
+            const formattedHours = String(newHours).padStart(2, '0');
+            const formattedMinutes = String(minutes).padStart(2, '0');
+            endTimeInput.value = `${formattedHours}:${formattedMinutes}`;
+        }
+
+        // --- 3. FILTER SUBJECTS & CLASSROOMS ---
+        function filterBySemester() {
+            const semesterId = semesterInput.value;
+            if (!semesterId) return;
+
+            // Subjects
+            fetch(`{% url 'ajax_load_subjects' %}?semester=${semesterId}`)
+                .then(response => response.json())
+                .then(data => {
+                    subjectSelect.innerHTML = '<option value="">---------</option>';
+                    data.forEach(item => {
+                        subjectSelect.add(new Option(`${item.code} - ${item.name}`, item.id));
+                    });
+                });
+
+            // Classrooms
+            fetch(`{% url 'ajax_load_classrooms' %}?semester=${semesterId}`)
+                .then(response => response.json())
+                .then(data => {
+                    classroomSelect.innerHTML = '<option value="">---------</option>';
+                    data.forEach(item => {
+                        classroomSelect.add(new Option(item.name, item.id));
+                    });
+                    // Reset Batches
+                    batchSelect.innerHTML = '<option value="">---------</option>';
+                });
+        }
+
+        // --- 4. FILTER BATCHES ---
+        function filterBatches() {
+            const classroomId = classroomSelect.value;
+            if (!classroomId) {
+                batchSelect.innerHTML = '<option value="">---------</option>';
+                return;
+            }
+
+            fetch(`{% url 'ajax_load_batches' %}?classroom_id=${classroomId}`)
+                .then(response => response.json())
+                .then(data => {
+                    batchSelect.innerHTML = '<option value="">---------</option>';
+                    data.forEach(item => {
+                        batchSelect.add(new Option(item.name, item.id));
+                    });
+                });
+        }
+
+        // --- EVENT LISTENERS ---
+        radios.forEach(r => r.addEventListener('change', toggleBatch));
+        startTimeInput.addEventListener('change', calculateEndTime);
+        semesterInput.addEventListener('change', filterBySemester);
+        classroomSelect.addEventListener('change', filterBatches);
+
+        // Init
+        toggleBatch();
+        if(semesterInput.value) { filterBySemester(); }
+    });
+</script>
+
+<style>
+    .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+{% endblock %}

@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% block title %}Attendance | Student - RCTI {% endblock %}
+{% block content %}
+<style>
+  /* Mesh Background */
+  .bg-mesh {
+    background-color: #f8fafc;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.05) 0, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.05) 0, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* Glassmorphism */
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Radial Progress */
+  .radial-progress {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: conic-gradient(var(--color) var(--degrees), #e2e8f0 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .radial-progress::before {
+    content: "";
+    position: absolute;
+    width: 130px;
+    height: 130px;
+    background: white;
+    border-radius: 50%;
+  }
+
+  .radial-value {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Linear Progress Bar */
+  .progress-track {
+    background-color: #e2e8f0;
+    border-radius: 9999px;
+    height: 8px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 1s ease-out;
+  }
+
+  /* Status Colors */
+  .status-good {
+    --color: #10b981;
+  }
+
+  .status-avg {
+    --color: #f59e0b;
+  }
+
+  .status-bad {
+    --color: #ef4444;
+  }
+
+  .font-code {
+    font-family: "Consolas", "Fira Code", monospace;
+  }
+</style>
+
+{% include 'partials/student_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-mesh">
+  <nav class="w-full z-50 glass-nav">
+    <div class="px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
+        <div class="flex items-center gap-3">
+          <button id="menuBtn"
+            class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+          <div>
+            <h1 class="font-bold text-lg text-slate-900 font-tech">
+              Attendance
+            </h1>
+            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">
+              Sem {{ student.semester }} • 2026
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-1 overflow-y-auto py-8 px-4 max-w-7xl mx-auto w-full custom-scroll">
+    <!-- Overall Stats -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+      <div
+        class="glass-card rounded-3xl p-8 flex items-center justify-center lg:justify-between relative overflow-hidden">
+        <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-100 rounded-full blur-[50px] opacity-60"></div>
+
+        <div class="flex flex-col gap-4 z-10">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">
+              Overall Attendance
+            </h2>
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">
+              Aggregate (Theory + Lab)
+            </p>
+          </div>
+          <div class="flex gap-4">
+            <div>
+              <p class="text-2xl font-bold font-tech text-slate-900">
+                {{ total_classes }}
+              </p>
+              <p class="text-[10px] text-slate-400 uppercase">Total</p>
+            </div>
+            <div class="w-px bg-slate-200 h-10"></div>
+            <div>
+              <p class="text-2xl font-bold font-tech text-green-600">
+                {{ present_count }}
+              </p>
+              <p class="text-[10px] text-slate-400 uppercase">Present</p>
+            </div>
+            <div class="w-px bg-slate-200 h-10"></div>
+            <div>
+              <p class="text-2xl font-bold font-tech text-red-500">
+                {{ absent_count }}
+              </p>
+              <p class="text-[10px] text-slate-400 uppercase">Absent</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="radial-progress status-good ml-6" style="--degrees: {{ degrees }};">
+          <div class="radial-value">
+            <span class="text-4xl font-bold font-tech text-slate-900">{{ percentage }}%</span>
+            <span
+              class="text-[10px] font-bold text-green-600 uppercase mt-1 bg-green-50 px-2 py-0.5 rounded-full">Safe</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-3xl p-8 flex flex-col justify-center">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 shrink-0">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900">GTU Mandate</h3>
+            <p class="text-sm text-slate-500 mt-1">
+              Minimum
+              <span class="font-bold text-slate-900">75% attendance</span> is
+              required to appear for the end-semester examination.
+            </p>
+          </div>
+        </div>
+        <div class="mt-auto pt-4 border-t border-slate-100">
+          <p class="text-xs text-slate-400">
+            Current Status:
+            <span class="text-green-500 font-bold">Eligible</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-3xl p-6">
+        <h3 class="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">
+          Recent Activity
+        </h3>
+        <div class="space-y-3">
+          {% for record in recent_attendance %}
+          <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 rounded-lg {% if record.is_present %}bg-green-100 text-green-600{% else %}bg-red-100 text-red-600{% endif %} flex items-center justify-center text-xs font-bold">
+                {% if record.is_present %}P{% else %}A{% endif %}
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-700">
+                  {{ record.subject.name }}
+                </p>
+                <p class="text-[10px] text-slate-400">
+                  {{ record.date|date:"M d, Y" }}
+                </p>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-sm text-slate-400 text-center py-4">
+            No recent records
+          </p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Subject Breakdown -->
+    <h2 class="text-xl font-bold font-tech text-slate-900 mb-6">
+      Subject Breakdown
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      {% for subject in subject_data %}
+      <div
+        class="glass-card p-6 rounded-2xl border-l-4 {% if subject.percentage|default:0 >= 75 %}border-l-green-500{% elif subject.percentage|default:0 >= 65 %}border-l-orange-400{% else %}border-l-red-500{% endif %}">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">
+              {{ subject.name }}
+            </h3>
+            <p class="text-xs text-slate-500 font-code">{{ subject.code }}</p>
+          </div>
+          <span
+            class="text-2xl font-bold font-tech {% if subject.percentage|default:0 >= 75 %}text-green-600{% elif subject.percentage|default:0 >= 65 %}text-orange-500{% else %}text-red-500{% endif %}">
+            {{ subject.percentage}}%</span>
+        </div>
+        <div class="progress-track mb-4">
+          <div
+            class="progress-fill {% if subject.percentage|default:0 >= 75 %}bg-green-500{% elif subject.percentage|default:0 >= 65 %}bg-orange-400{% else %}bg-red-500{% endif %}"
+            style="width: {{ subject.percentage|default:0 }}%"></div>
+        </div>
+        <div class="flex justify-between text-xs text-slate-500">
+          <span>Total: {{ subject.total }}</span>
+          <span>Present: {{ subject.present }}</span>
+        </div>
+        {% if subject.percentage|default:0 < 75 %} <p class="text-[10px] text-red-500 mt-2 font-bold">
+          <i class="fa-solid fa-triangle-exclamation mr-1"></i> Low Attendance
+          Warning
+          </p>
+          {% endif %}
+      </div>
+      {% empty %}
+      <div class="col-span-3 text-center py-12">
+        <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fa-solid fa-clipboard-check text-2xl text-blue-500"></i>
+        </div>
+        <p class="text-slate-600 font-bold">No attendance data yet</p>
+        <p class="text-slate-400 text-sm">
+          Your attendance will appear here once recorded
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <footer class="bg-white/50 border-t border-slate-200 py-6 text-center mt-12 rounded-xl">
+      <p class="text-xs text-slate-400">
+        © 2026 Dept of Information Technology, RC Technical Institute.
+      </p>
+    </footer>
+  </main>
+</div>
+{% endblock %}

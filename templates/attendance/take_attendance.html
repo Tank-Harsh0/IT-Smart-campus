@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="h-screen flex flex-col bg-[#f8fafc] overflow-hidden">
+    <header class="h-20 bg-white/70 backdrop-blur-md border-b border-white/50 flex items-center justify-between px-6 z-40">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'faculty_dashboard' %}" class="w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="text-xl font-bold font-tech text-slate-900">Attendance System</h2>
+                <p class="text-xs text-slate-500">Session ID: #{{ session.id }} • <span class="text-green-600 font-bold">Camera Active</span></p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+             <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/50 border border-slate-200 rounded-lg text-xs font-bold text-slate-600">
+                <i class="fa-solid fa-clock"></i> {% now "h:i A" %}
+            </div>
+            <a href="{% url 'faculty_dashboard' %}" class="px-4 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-all shadow-lg flex items-center gap-2">
+                <i class="fa-solid fa-check"></i> <span class="hidden sm:inline">Finalize</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-hidden p-6">
+        <div class="h-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-2 flex flex-col gap-4">
+                <div class="flex justify-between items-center bg-white/60 p-3 rounded-2xl border border-white/50 backdrop-blur-sm">
+                    <div class="flex items-center gap-4">
+                        <span class="font-bold text-slate-700 ml-2">{{ session.subject.name }} ({{ session.subject.code }})</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <span id="statusParams" class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-lg animate-pulse">Scanning...</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative overflow-hidden rounded-[24px] bg-slate-900 shadow-xl group">
+                    <video id="video" autoplay muted class="w-full h-full object-cover transform -scale-x-100"></video>
+                    <canvas id="canvas" class="hidden"></canvas>
+                    
+                    <div class="absolute inset-0 border-2 border-blue-500/30 rounded-[24px] pointer-events-none">
+                         <div class="absolute top-0 left-0 w-full h-1 bg-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.8)] animate-[scan_3s_linear_infinite]"></div>
+                         
+                         <div class="absolute top-4 left-4 w-8 h-8 border-t-4 border-l-4 border-white/30 rounded-tl-lg"></div>
+                        <div class="absolute top-4 right-4 w-8 h-8 border-t-4 border-r-4 border-white/30 rounded-tr-lg"></div>
+                        <div class="absolute bottom-4 left-4 w-8 h-8 border-b-4 border-l-4 border-white/30 rounded-bl-lg"></div>
+                        <div class="absolute bottom-4 right-4 w-8 h-8 border-b-4 border-r-4 border-white/30 rounded-br-lg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-4 h-full">
+                <div class="bg-white/60 backdrop-blur-md p-5 rounded-2xl border border-white/50 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold font-tech text-slate-800">Stats</h3>
+                    </div>
+                    <div class="flex gap-4">
+                         <div class="flex-1 text-center p-3 bg-green-50 rounded-xl border border-green-100">
+                            <div class="text-2xl font-bold font-tech text-green-600" id="present-count">0</div>
+                            <div class="text-[10px] font-bold text-green-700 uppercase">Present</div>
+                        </div>
+                         <div class="flex-1 text-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="text-2xl font-bold font-tech text-slate-400">-</div>
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">Total</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 bg-white/60 backdrop-blur-md rounded-2xl flex flex-col overflow-hidden border border-white/50 shadow-sm">
+                    <div class="p-4 border-b border-white/50 bg-white/30 flex justify-between items-center">
+                        <h3 class="font-bold font-tech text-slate-800">Live Log</h3>
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    </div>
+
+                    <div id="logContainer" class="flex-1 overflow-y-auto p-2 space-y-2 custom-scroll">
+                        <div id="empty-state" class="h-full flex flex-col items-center justify-center text-slate-400 p-8 text-center opacity-70">
+                            <i class="fa-solid fa-face-viewfinder text-3xl mb-3"></i>
+                            <p class="text-sm">Waiting for faces...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const logContainer = document.getElementById('logContainer');
+    const emptyState = document.getElementById('empty-state');
+    const statusLabel = document.getElementById('statusParams');
+    const presentCountEl = document.getElementById('present-count');
+    
+    let presentSet = new Set(); // To count unique students locally
+
+    // 1. Start Camera
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+            video.srcObject = stream;
+            video.play();
+            startScanning();
+        });
+    }
+
+    function startScanning() {
+        setInterval(() => { captureAndSend(); }, 4000); // 4 Seconds
+    }
+
+    function captureAndSend() {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(blob => {
+            const formData = new FormData();
+            formData.append('image', blob, 'capture.jpg');
+
+            statusLabel.textContent = "Processing...";
+            statusLabel.className = "bg-yellow-100 text-yellow-700 text-xs font-bold px-3 py-1 rounded-lg";
+
+            fetch("{% url 'recognize_face' session.id %}", {
+                method: 'POST',
+                body: formData,
+                headers: {'X-CSRFToken': '{{ csrf_token }}'}
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success' && data.identified.length > 0) {
+                    statusLabel.textContent = "Face Detected!";
+                    statusLabel.className = "bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-lg";
+                    
+                    data.identified.forEach(name => {
+                        // Extract Name cleanly if it comes as "Name (Status)"
+                        let cleanName = name.split('(')[0].trim(); 
+                        if(!presentSet.has(cleanName)) {
+                            presentSet.add(cleanName);
+                            presentCountEl.textContent = presentSet.size;
+                            addLogEntry(cleanName);
+                        }
+                    });
+                } else {
+                    statusLabel.textContent = "Scanning...";
+                    statusLabel.className = "bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-lg animate-pulse";
+                }
+            });
+        }, 'image/jpeg');
+    }
+
+    function addLogEntry(name) {
+        if(emptyState) emptyState.style.display = 'none';
+        
+        const div = document.createElement('div');
+        div.className = "p-3 bg-white/80 rounded-xl flex items-center justify-between border border-white/50 shadow-sm animate-[pulse_0.5s_ease-out]";
+        div.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600 text-xs">
+                    ${name.charAt(0)}
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-slate-800 leading-tight">${name}</h4>
+                    <p class="text-[10px] text-slate-500">Marked Present</p>
+                </div>
+            </div>
+            <div class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100">
+                <i class="fa-solid fa-check"></i> Now
+            </div>
+        `;
+        logContainer.prepend(div);
+    }
+</script>
+
+<style>
+@keyframes scan { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+</style>
+{% endblock %}

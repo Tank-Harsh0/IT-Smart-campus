@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}My Timetable | RCTI{% endblock %}
+
+{% block content %}
+{% include 'partials/student_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+    
+    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40 flex-shrink-0">
+        <div class="flex items-center gap-4">
+            <button id="menuBtn" class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+            <div>
+                <h2 class="text-xl font-bold font-tech text-slate-800">My Timetable</h2>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:block">
+                    {{ student.batch.classroom.name }} | Batch {{ student.batch.name }}
+                </p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <span class="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
+                Sem {{ student.semester }}
+            </span>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll">
+        
+        <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-[2rem] p-8 mb-8 text-white relative overflow-hidden shadow-xl shadow-slate-900/10">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600 rounded-full blur-[80px] opacity-30"></div>
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <p class="text-blue-200 font-bold text-xs uppercase tracking-widest mb-1">Today is {% now "l, F jS" %}</p>
+                    <h1 class="text-3xl font-bold font-tech">Your Weekly Schedule</h1>
+                </div>
+                </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            
+            {% for day_data in weekly_schedule %}
+            <div class="bg-white rounded-[1.5rem] border border-slate-200 overflow-hidden flex flex-col h-full shadow-sm hover:shadow-md transition duration-300 group">
+                
+                <div class="h-14 bg-slate-50 border-b border-slate-100 flex items-center justify-between px-6 group-hover:bg-slate-100 transition-colors">
+                    <h3 class="font-bold font-tech text-slate-700 text-lg">{{ day_data.day_name }}</h3>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm">
+                        {{ day_data.count }} Sessions
+                    </span>
+                </div>
+
+                <div class="p-4 space-y-3 flex-1">
+                    {% if day_data.slots %}
+                        {% for slot in day_data.slots %}
+                        
+                        {% if "ALL" in slot.batch.name %}
+                            <div class="relative p-4 rounded-2xl border border-blue-100 bg-blue-50/20 hover:bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                                <div class="absolute left-0 top-4 bottom-4 w-1 rounded-r-full bg-blue-500"></div>
+                                
+                                <div class="pl-3">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-bold text-slate-800 text-sm">{{ slot.subject.name }}
+                                            <span class="block text-[10px] text-slate-400 font-normal mt-0.5">{{ slot.subject.code }}</span>
+                                        </h4>
+                                        <div class="text-right bg-white px-2 py-1 rounded-lg border border-slate-100 shadow-sm">
+                                            <p class="text-xs font-bold text-slate-700">{{ slot.start_time|date:"H:i" }}</p>
+                                            <p class="text-[9px] text-slate-400">{{ slot.end_time|date:"H:i" }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <span class="px-2 py-0.5 rounded text-[9px] font-extrabold tracking-wide uppercase bg-blue-100 text-blue-600 border border-blue-200">
+                                            <i class="fa-solid fa-chalkboard-user mr-1"></i> Lecture
+                                        </span>
+                                        <span class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                            <i class="fa-solid fa-user-tie text-[9px]"></i> {{ slot.faculty.initials }}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-2 border-t border-blue-100/50">
+                                        <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                                            <i class="fa-solid fa-users text-blue-400"></i> Whole Class
+                                        </span>
+                                        <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-slate-100">
+                                            <i class="fa-solid fa-location-dot text-red-400"></i> {{ slot.room_number }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        {% else %}
+                            <div class="relative p-4 rounded-2xl border border-orange-100 bg-orange-50/20 hover:bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                                <div class="absolute left-0 top-4 bottom-4 w-1 rounded-r-full bg-orange-500"></div>
+                                
+                                <div class="pl-3">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-bold text-slate-800 text-sm">{{ slot.subject.name }}
+                                            <span class="block text-[10px] text-slate-400 font-normal mt-0.5">{{ slot.subject.code }}</span>
+                                        </h4>
+                                        <div class="text-right bg-white px-2 py-1 rounded-lg border border-slate-100 shadow-sm">
+                                            <p class="text-xs font-bold text-slate-700">{{ slot.start_time|date:"H:i" }}</p>
+                                            <p class="text-[9px] text-slate-400">{{ slot.end_time|date:"H:i" }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <span class="px-2 py-0.5 rounded text-[9px] font-extrabold tracking-wide uppercase bg-orange-100 text-orange-600 border border-orange-200">
+                                            <i class="fa-solid fa-flask mr-1"></i> Lab
+                                        </span>
+                                        <span class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                            <i class="fa-solid fa-user-gear text-[9px]"></i> {{ slot.faculty.initials }}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-2 border-t border-orange-100/50">
+                                        <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                                            <i class="fa-solid fa-layer-group text-orange-400"></i> Batch {{ slot.batch.name }}
+                                        </span>
+                                        <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-slate-100">
+                                            <i class="fa-solid fa-location-dot text-red-400"></i> {{ slot.room_number }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% endfor %}
+                    {% else %}
+                        <div class="h-40 flex flex-col items-center justify-center text-slate-300 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/50">
+                            <i class="fa-solid fa-mug-hot text-2xl mb-2 text-slate-300"></i>
+                            <span class="text-xs font-bold uppercase tracking-wide">No Classes</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+    </main>
+</div>
+{% endblock %}

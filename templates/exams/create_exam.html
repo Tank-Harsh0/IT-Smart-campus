@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/admin_sidebar.html' %} <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+    <button
+    id="menuBtn"
+    class="p-2 rounded-lg hover:bg-slate-100"
+    aria-label="Open sidebar"
+  >
+    <i class="fa-solid fa-bars text-xl"></i>
+  </button>
+    
+    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <h2 class="text-xl font-bold font-tech text-slate-800">Schedule New Exam</h2>
+        <a href="{% url 'exam_list' %}" class="text-xs font-bold text-slate-500 hover:text-slate-800">
+            <i class="fa-solid fa-xmark mr-1"></i> Cancel
+        </a>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8 custom-scroll flex justify-center">
+        
+        <div class="max-w-3xl w-full bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200">
+            <div class="mb-8 flex items-center gap-4">
+                <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 text-xl">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-slate-800">Exam Details</h3>
+                    <p class="text-xs text-slate-500">Set dates and semester for the upcoming evaluation.</p>
+                </div>
+            </div>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Exam Title</label>
+                    <input type="text" name="name" placeholder="e.g. Summer 2026 Final Exam" required
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Exam Type</label>
+                        <select name="exam_type" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
+                            <option value="MID">Mid-Semester</option>
+                            <option value="GTU">GTU Final</option>
+                            <option value="REM">Remedial</option>
+                            <option value="PRAC">Practical</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Target Semester</label>
+                        <select name="semester" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Start Date</label>
+                        <input type="date" name="start_date" required
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">End Date</label>
+                        <input type="date" name="end_date" required
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check"></i> Create Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

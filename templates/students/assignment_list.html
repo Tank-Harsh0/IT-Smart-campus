@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Assignments | Student - RCTI{% endblock %}
+
+{% block content %}
+    {% include 'partials/student_sidebar.html' %}
+
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40 shrink-0">
+            <div class="flex items-center gap-4">
+                <button id="menuBtn" class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <h2 class="text-xl font-bold font-tech text-slate-800">My Assignments</h2>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
+                    Sem {{ student.semester }}
+                </span>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 custom-scroll">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div class="bg-white rounded-[1.5rem] p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fa-solid fa-file-code text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Assignments</p>
+                        <h3 class="text-2xl font-bold text-slate-800">{{ assignments.count }}</h3>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[1.5rem] p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                        <i class="fa-solid fa-clock text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Pending</p>
+                        <h3 class="text-2xl font-bold text-orange-600">{{ pending_count }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for asm in assignments %}
+                <div class="bg-white rounded-[1.5rem] p-6 border border-slate-200 relative overflow-hidden group shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
+                    
+                    <div class="absolute top-4 right-4">
+                        {% if asm.status == 'Overdue' %}
+                        <span class="px-3 py-1 bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold rounded-full uppercase flex items-center gap-1">
+                            <i class="fa-solid fa-circle-exclamation"></i> Overdue
+                        </span>
+                        {% else %}
+                        <span class="px-3 py-1 bg-orange-50 text-orange-600 border border-orange-100 text-[10px] font-bold rounded-full uppercase flex items-center gap-1">
+                            <i class="fa-regular fa-clock"></i> Pending
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="w-14 h-14 rounded-2xl bg-slate-50 text-slate-600 flex items-center justify-center mb-4 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                        <i class="fa-solid fa-book-bookmark text-2xl"></i>
+                    </div>
+
+                    <h3 class="font-bold text-slate-800 text-lg mb-1 pr-20 leading-tight">{{ asm.title }}</h3>
+                    <p class="text-xs font-bold text-blue-600 mb-3">{{ asm.subject.name }}</p>
+
+                    <div class="flex items-center gap-2 text-xs text-slate-400 mb-4 bg-slate-50 p-2 rounded-lg inline-flex">
+                        <i class="fa-regular fa-calendar-check"></i>
+                        <span class="font-bold">Due: {{ asm.due_date|date:"M d, Y" }}</span>
+                    </div>
+
+                    {% if asm.description %}
+                    <p class="text-sm text-slate-500 mb-6 line-clamp-2">{{ asm.description }}</p>
+                    {% else %}
+                    <p class="text-sm text-slate-400 italic mb-6">No description provided.</p>
+                    {% endif %}
+
+                    <div class="border-t border-slate-100 pt-4">
+                        {% if asm.file %}
+                        <a href="{{ asm.file.url }}" target="_blank" class="w-full py-3 text-center rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-blue-600 transition shadow-lg flex items-center justify-center gap-2 group-hover:shadow-blue-500/20">
+                            <i class="fa-solid fa-file-pdf"></i> Download Assignment PDF
+                        </a>
+                        {% else %}
+                        <button disabled class="w-full py-3 text-center rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed">
+                            No PDF Attached
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full">
+                    <div class="bg-white rounded-[1.5rem] p-12 text-center border border-slate-200 border-dashed">
+                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                            <i class="fa-regular fa-folder-open text-3xl"></i>
+                        </div>
+                        <h3 class="text-slate-700 font-bold text-lg mb-1">No Assignments Found</h3>
+                        <p class="text-slate-400 text-sm">You are all caught up! Check back later for new assignments.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="h-10"></div>
+        </main>
+    </div>
+{% endblock %}

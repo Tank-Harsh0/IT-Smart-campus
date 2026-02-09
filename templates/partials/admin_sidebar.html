@@ -1,0 +1,63 @@
+<aside
+  id="sidebar"
+  class="w-64 flex-shrink-0 glass-sidebar text-white flex flex-col
+         fixed md:static inset-y-0 left-0 z-50
+         transform transition-transform duration-300
+         -translate-x-full md:translate-x-0"
+>
+
+  <div class="h-20 flex items-center px-6 border-b border-white/10">
+    <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
+      <i class="fa-solid fa-shield-halved text-sm"></i>
+    </div>
+    <div>
+      <h1 class="font-bold font-tech text-lg">RCTI Admin</h1>
+      <p class="text-[10px] text-slate-400 uppercase">System Control</p>
+    </div>
+  </div>
+
+  <nav class="flex-1 py-6 space-y-1">
+    <a href="{% url 'admin_dashboard' %}" class="nav-item flex items-center px-6 py-3">
+      <i class="fa-solid fa-gauge-high w-5 mr-3"></i>
+      <span class="font-medium text-sm">Overview</span>
+    </a>
+
+    <a href="{% url 'student_list' %}" class="nav-item flex items-center px-6 py-3">
+      <i class="fa-solid fa-users w-5 mr-3"></i>
+      <span class="font-medium text-sm">Students</span>
+    </a>
+    <a href="{% url 'Faculty_list' %}" class="nav-item flex items-center px-6 py-3">
+      <i class="fa-solid fa-users w-5 mr-3"></i>
+      <span class="font-medium text-sm">Faculty</span>
+    </a>
+
+    <a href="{% url 'subject_list' %}" class="nav-item flex items-center px-6 py-3">
+      <i class="fa-solid fa-book w-5 mr-3"></i>
+      <span class="font-medium text-sm">Subjects</span>
+    </a>
+
+    <a href="{% url 'exam_list' %}" class="nav-item flex items-center px-6 py-3">
+      <i class="fa-solid fa-file-signature w-5 mr-3"></i>
+      <span class="font-medium text-sm">Exams</span>
+    </a>
+    <a href="{% url 'send_notification' %}" class="nav-item flex items-center px-6 py-3">
+    <i class="fa-solid fa-bullhorn w-5 mr-3"></i>
+    <span class="font-medium text-sm">Broadcast</span>
+</a><a href="{% url 'upload_batches' %}" class="nav-item flex items-center px-6 py-3">
+    <i class="fa-solid fa-users-rectangle w-5 mr-3"></i> <span class="font-medium text-sm">Batch Allocation</span>
+</a>
+<a href="{% url 'upload_timetable' %}" class="nav-item flex items-center px-6 py-3">
+    <i class="fa-solid fa-calendar-days w-5 mr-3"></i> <span class="font-medium text-sm">Upload Timetable</span>
+</a>
+    
+
+    <a
+      href="{% url 'logout' %}"
+      class="nav-item flex items-center px-6 py-3 text-red-300 hover:text-red-100 mt-10"
+    >
+      <i class="fa-solid fa-power-off w-5 mr-3"></i>
+      <span class="font-medium text-sm">Logout</span>
+    </a>
+    
+  </nav>
+</aside>

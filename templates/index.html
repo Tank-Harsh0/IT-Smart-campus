@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT Department | RC Technical Institute</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    /* Modern Tech Font Stack */
+    body {
+      font-family: "Outfit", sans-serif;
+    }
+
+    .font-tech {
+      font-family: "Space Grotesk", sans-serif;
+    }
+
+    /* Custom Gradients */
+    .bg-mesh {
+      background-color: #f8fafc;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.1) 0, transparent 50%),
+        radial-gradient(at 100% 100%,
+          rgba(6, 182, 212, 0.1) 0,
+          transparent 50%);
+      background-attachment: fixed;
+    }
+
+    /* Glassmorphism Utilities */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+    }
+
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Notice Board Animation */
+    .notice-scroll {
+      mask-image: linear-gradient(to bottom,
+          transparent,
+          black 10%,
+          black 90%,
+          transparent);
+    }
+
+    /* Bento Grid Interactions */
+    .bento-item {
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .bento-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px -8px rgba(37, 99, 235, 0.15);
+      border-color: #3b82f6;
+    }
+
+    /* Text Gradient */
+    .text-gradient-blue {
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body class="bg-mesh text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
+
+  <!-- Navigation -->
+  {% include 'partials/public_navbar.html' %}
+
+  <main class="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+
+    <!-- Hero Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
+      <div
+        class="lg:col-span-8 glass-panel rounded-3xl p-8 md:p-12 relative overflow-hidden flex flex-col justify-center">
+        <div
+          class="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full blur-[80px] -z-10 translate-x-1/2 -translate-y-1/2">
+        </div>
+        <h1 class="text-4xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight font-tech">
+          Empowering <br />
+          <span class="text-gradient-blue">Future Innovators</span>
+        </h1>
+
+        <p class="text-lg text-slate-600 mb-8 max-w-xl leading-relaxed">
+          Welcome to the Information Technology Department. We bridge the gap
+          between academic theory and industrial reality through next-gen labs
+          and rigorous coding culture.
+        </p>
+
+        <div class="flex flex-wrap gap-4">
+          <a href="{% url 'login' %}"
+            class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all hover:-translate-y-0.5">
+            Student Portal
+          </a>
+          <a href="{% url 'gallery' %}"
+            class="px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all">
+            Department Gallery
+          </a>
+        </div>
+      </div>
+
+      <!-- Notice Board Section -->
+      <div class="lg:col-span-4 glass-panel rounded-3xl p-6 flex flex-col h-[500px] lg:h-auto">
+        <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-200/60">
+          <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+            <i class="fa-regular fa-bell text-blue-500"></i> Notice Board
+          </h3>
+          <span class="text-xs font-bold text-slate-400 uppercase">Live Updates</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto notice-scroll space-y-4 pr-2 custom-scrollbar">
+          {% for notice in public_notices %}
+          <div
+            class="p-4 rounded-xl bg-white border border-slate-100 hover:border-blue-200 transition-colors group cursor-pointer">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase
+                {% if notice.priority == 'urgent' %}bg-red-50 text-red-500
+                {% elif notice.priority == 'important' %}bg-orange-50 text-orange-500
+                {% elif notice.priority == 'event' %}bg-purple-50 text-purple-500
+                {% else %}bg-blue-50 text-blue-500{% endif %}">
+                {{ notice.priority|default:"Info" }}
+              </span>
+              <span class="text-[10px] text-slate-400">{{ notice.created_at|timesince }} ago</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-800 group-hover:text-blue-600 transition-colors">
+              {{ notice.title }}
+            </p>
+            {% if notice.message %}
+            <p class="text-xs text-slate-500 mt-1 line-clamp-2">{{ notice.message|truncatewords:15 }}</p>
+            {% endif %}
+          </div>
+          {% empty %}
+          <!-- Empty State -->
+          <div class="p-4 rounded-xl bg-white border border-slate-100">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-500 uppercase">Info</span>
+              <span class="text-[10px] text-slate-400">Just Now</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-800">
+              Welcome to RCTI IT Department
+            </p>
+            <p class="text-xs text-slate-500 mt-1">No active notices at the moment. Check back later!</p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <a href="#" class="mt-4 text-center text-xs font-bold text-blue-600 hover:underline">View Archived Notices</a>
+      </div>
+    </div>
+
+    <!-- Quick Access Section -->
+    <div class="mb-8">
+      <h2 class="text-xl font-bold text-slate-900 mb-6 font-tech flex items-center gap-2">
+        <i class="fa-solid fa-bolt text-yellow-500"></i> Quick Access
+      </h2>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="https://www.gtu.ac.in" target="_blank"
+          class="bento-item bg-white p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center group">
+          <div
+            class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-orange-600 mb-3 group-hover:scale-110 transition-transform">
+            <i class="fa-solid fa-university text-xl"></i>
+          </div>
+          <span class="font-bold text-slate-700 group-hover:text-orange-600 transition-colors">GTU Portal</span>
+          <span class="text-xs text-slate-400 mt-1">Results & Circulars</span>
+        </a>
+
+        <a href="{% url 'login' %}"
+          class="bento-item bg-white p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center group">
+          <div
+            class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 transition-transform">
+            <i class="fa-solid fa-user-graduate text-xl"></i>
+          </div>
+          <span class="font-bold text-slate-700 group-hover:text-blue-600 transition-colors">Student Login</span>
+          <span class="text-xs text-slate-400 mt-1">Attendance & Fees</span>
+        </a>
+
+        <a href="https://gtu.ac.in/syllabus/syllabus.aspx" target="_blank"
+          class="bento-item bg-white p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center group">
+          <div
+            class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-green-600 mb-3 group-hover:scale-110 transition-transform">
+            <i class="fa-solid fa-book-open text-xl"></i>
+          </div>
+          <span class="font-bold text-slate-700 group-hover:text-green-600 transition-colors">Syllabus</span>
+          <span class="text-xs text-slate-400 mt-1">Curriculum Download</span>
+        </a>
+
+        <a href="{% url 'faculty_public' %}"
+          class="bento-item bg-white p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center group">
+          <div
+            class="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-purple-600 mb-3 group-hover:scale-110 transition-transform">
+            <i class="fa-solid fa-chalkboard-user text-xl"></i>
+          </div>
+          <span class="font-bold text-slate-700 group-hover:text-purple-600 transition-colors">Faculty</span>
+          <span class="text-xs text-slate-400 mt-1">Staff Directory</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Vision & Mission Section -->
+    <div class="grid md:grid-cols-2 gap-6 mb-12">
+      <div class="glass-panel p-8 rounded-3xl relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <i class="fa-regular fa-eye text-6xl"></i>
+        </div>
+        <h3 class="text-xl font-bold font-tech text-slate-900 mb-3">Our Vision</h3>
+        <p class="text-slate-600 leading-relaxed">
+          To mould young and fresh minds into challenging computer
+          professionals with ethical values and shaping them with upcoming
+          technologies to deal with real world situations.
+        </p>
+      </div>
+
+      <div class="glass-panel p-8 rounded-3xl relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <i class="fa-solid fa-crosshairs text-6xl"></i>
+        </div>
+        <h3 class="text-xl font-bold font-tech text-slate-900 mb-3">Our Mission</h3>
+        <ul class="space-y-2 text-slate-600">
+          <li class="flex gap-3 items-start">
+            <i class="fa-solid fa-check text-blue-500 mt-1 text-sm"></i>
+            <span>Produce competent professionals via state-of-the-art training.</span>
+          </li>
+          <li class="flex gap-3 items-start">
+            <i class="fa-solid fa-check text-blue-500 mt-1 text-sm"></i>
+            <span>Impart moral, ethical values and interpersonal skills.</span>
+          </li>
+          <li class="flex gap-3 items-start">
+            <i class="fa-solid fa-check text-blue-500 mt-1 text-sm"></i>
+            <span>Enhance employability and eligibility for higher studies.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div
+      class="bg-slate-900 rounded-3xl p-8 text-white grid grid-cols-2 md:grid-cols-4 gap-8 text-center relative overflow-hidden">
+      <div
+        class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20">
+      </div>
+
+      <div class="relative z-10">
+        <p class="text-3xl font-bold font-tech text-blue-400">180</p>
+        <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Annual Intake</p>
+      </div>
+      <div class="relative z-10">
+        <p class="text-3xl font-bold font-tech text-cyan-400">20+</p>
+        <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Expert Faculty</p>
+      </div>
+      <div class="relative z-10">
+        <p class="text-3xl font-bold font-tech text-green-400">5</p>
+        <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Computer Labs</p>
+      </div>
+      <div class="relative z-10">
+        <p class="text-3xl font-bold font-tech text-purple-400">100%</p>
+        <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Project Support</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  {% include 'partials/public_footer.html' %}
+
+</body>
+
+</html>

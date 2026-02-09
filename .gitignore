@@ -1,0 +1,69 @@
+# =========================
+# Python / Django
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+
+# Django static & media
+media/
+staticfiles/
+csvs
+
+# =========================
+# Virtual Environment (CRITICAL)
+# =========================
+env/
+venv/
+pyvenv.cfg
+Scripts/
+Lib/
+Include/
+
+# =========================
+# Face recognition binaries
+# =========================
+*.exe
+*.pyd
+*.dll
+
+# =========================
+# Timezone / site-packages junk (MUST IGNORE)
+# =========================
+tzdata*
+urllib3*
+whitenoise*
+_distutils_hack/
+_cffi_backend*
+_dlib_pybind11*
+
+# =========================
+# Environment & secrets
+# =========================
+.env
+.env.*
+*.pem
+*.key
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# Uploaded files (keep DB clean)
+# =========================
+media/assignments/
+media/face_datasets/
+media/faculty_photos/
+
+# =========================
+# Personal / design-only files
+# =========================
+Templates-by-me/

@@ -1,0 +1,48 @@
+<!-- Public Footer Partial -->
+<footer class="bg-white border-t border-slate-200 pt-10 pb-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-3 gap-8 mb-8">
+            <!-- Contact Info -->
+            <div>
+                <h4 class="font-bold text-slate-900 mb-4">Contact Us</h4>
+                <p class="text-sm text-slate-500 mb-2">
+                    <i class="fa-solid fa-location-dot w-5 text-blue-500"></i>
+                    Opp. Sola Civil Hospital, S.G. Highway, Ahmedabad - 380060
+                </p>
+                <p class="text-sm text-slate-500">
+                    <i class="fa-solid fa-envelope w-5 text-blue-500"></i>
+                    infotech.rcti640@gmail.com
+                </p>
+            </div>
+
+            <!-- Affiliation -->
+            <div>
+                <h4 class="font-bold text-slate-900 mb-4">Affiliation</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">
+                    Approved by AICTE, New Delhi & Affiliated with Gujarat
+                    Technological University (GTU).
+                </p>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h4 class="font-bold text-slate-900 mb-4">Quick Links</h4>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{% url 'login' %}" class="text-sm text-blue-600 hover:underline">Student Portal</a>
+                    <span class="text-slate-300">•</span>
+                    <a href="https://www.gtu.ac.in" target="_blank"
+                        class="text-sm text-blue-600 hover:underline">GTU</a>
+                    <span class="text-slate-300">•</span>
+                    <a href="{% url 'curriculum' %}" class="text-sm text-blue-600 hover:underline">Syllabus</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="text-center border-t border-slate-100 pt-6">
+            <p class="text-xs text-slate-400">
+                © {% now "Y" %} Dept of Information Technology, RC Technical Institute. All Rights Reserved.
+            </p>
+        </div>
+    </div>
+</footer>

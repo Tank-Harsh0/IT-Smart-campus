@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Face ID Registration | Student - RCTI{% endblock %}
+
+{% block content %}
+{% include 'partials/student_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative">
+    <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <div class="flex items-center gap-4">
+            <button id="menuBtn"
+                class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+            <h2 class="text-xl font-bold font-tech text-slate-800">Biometric Registration</h2>
+        </div>
+        <a href="{% url 'student_dashboard' %}"
+            class="text-sm font-bold text-slate-500 hover:text-blue-600 flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-slate-100 transition">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6 custom-scroll flex justify-center">
+        <div class="w-full max-w-md">
+            <div class="dash-card p-8">
+                <!-- Header -->
+                <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                        <i class="fa-solid fa-face-smile text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg font-tech">Face ID Setup</h3>
+                        <p class="text-xs text-slate-400">Register for biometric attendance</p>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
+                    <p class="font-bold text-blue-800 text-sm mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-info-circle"></i> Instructions
+                    </p>
+                    <ul class="text-sm text-blue-700 space-y-1.5">
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-check text-xs"></i> Upload a clear photo of your face
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-check text-xs"></i> Look directly at the camera
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-check text-xs"></i> No sunglasses or masks
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-check text-xs"></i> Good lighting recommended
+                        </li>
+                    </ul>
+                </div>
+
+                {% if existing_face %}
+                <!-- Current Registration -->
+                <div class="mb-6 text-center p-6 bg-green-50 rounded-xl border border-green-100">
+                    <div
+                        class="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden border-4 border-green-500 shadow-lg relative">
+                        <img src="{{ existing_face.face_image.url }}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-green-500/10"></div>
+                    </div>
+                    <p class="text-green-700 font-bold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check-circle"></i> Currently Registered
+                    </p>
+                    <p class="text-slate-500 text-xs mt-1">Upload a new photo to update</p>
+                </div>
+                {% else %}
+                <!-- Not Registered -->
+                <div class="mb-6 text-center p-6 bg-orange-50 rounded-xl border border-orange-100">
+                    <div
+                        class="w-24 h-24 rounded-full mx-auto mb-4 bg-orange-100 flex items-center justify-center text-orange-500">
+                        <i class="fa-solid fa-user-slash text-3xl"></i>
+                    </div>
+                    <p class="text-orange-700 font-bold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-exclamation-circle"></i> Not Registered
+                    </p>
+                    <p class="text-slate-500 text-xs mt-1">Register your face to use biometric attendance</p>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+
+                    <div>
+                        <label class="block font-bold mb-2 text-slate-700 text-sm">
+                            <i class="fa-solid fa-camera mr-1 text-slate-400"></i> Select Photo
+                        </label>
+                        <div class="relative">
+                            <input type="file" name="face_image" accept="image/*" required
+                                class="w-full px-4 py-4 rounded-xl border-2 border-dashed border-slate-200 focus:border-indigo-500 outline-none transition text-slate-800 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer hover:border-indigo-300">
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit"
+                            class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-indigo-500/20 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-face-smile"></i>
+                            {% if existing_face %}Update Face ID{% else %}Register Face ID{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Security Note -->
+            <div class="dash-card p-6 mt-6">
+                <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-green-500"></i> Security Note
+                </h4>
+                <p class="text-sm text-slate-500">
+                    Your biometric data is encrypted and stored securely. It will only be used for attendance
+                    verification within campus premises.
+                </p>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

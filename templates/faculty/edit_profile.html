@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/faculty_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+
+    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40 flex-shrink-0">
+        <h2 class="text-xl font-bold font-tech text-slate-800">Edit Profile</h2>
+        <a href="{% url 'faculty_profile' %}" class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center py-2">
+            <i class="fa-solid fa-xmark mr-1"></i> Cancel
+        </a>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll flex justify-center">
+
+        <div class="max-w-3xl w-full bg-white rounded-[2rem] p-6 md:p-8 shadow-sm border border-slate-200 h-fit mb-8">
+
+            <div class="mb-8 flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-50 rounded-xl flex-shrink-0 flex items-center justify-center text-blue-600 text-xl">
+                    <i class="fa-solid fa-user-pen"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-slate-800">Update Details</h3>
+                    <p class="text-xs text-slate-500">Keep your academic record up to date.</p>
+                </div>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                <div class="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    
+                    <div class="w-24 h-24 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-white border-2 border-white shadow-md flex-shrink-0 relative">
+                        {% if form.instance.photo %}
+                            <img src="{{ form.instance.photo.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center bg-slate-200 text-slate-400">
+                                <i class="fa-solid fa-user text-2xl"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex-1 w-full text-center sm:text-left">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Profile Photo</label>
+                        {{ form.photo }}
+                        <p class="text-[10px] text-slate-400 mt-2">Recommended: Square JPG/PNG, max 2MB.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Designation</label>
+                        {{ form.designation }}
+                    </div>
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Qualification</label>
+                        {{ form.qualification }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Dept. Joining Date</label>
+                        {{ form.dept_joining_date }}
+                    </div>
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Institute Joining Date</label>
+                        {{ form.institute_joining_date }}
+                    </div>
+                </div>
+
+                <div class="w-full">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Areas of Interest</label>
+                    {{ form.area_of_interest }}
+                    <p class="text-[10px] text-slate-400 mt-1">Separate topics with commas (e.g. Java, AI)</p>
+                </div>
+
+                <div class="w-full">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Courses Taught</label>
+                    {{ form.courses_taught }}
+                </div>
+
+                <div class="w-full">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Portfolio / Roles</label>
+                    {{ form.portfolio }}
+                </div>
+
+                <div class="pt-6 border-t border-slate-100">
+                    <button type="submit" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 active:scale-[0.98] transform duration-100">
+                        Save Changes
+                    </button>
+                </div>
+
+            </form>
+        </div>
+        </main>
+</div>
+{% endblock %}

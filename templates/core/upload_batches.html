@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/admin_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center px-6 z-40">
+        <h2 class="text-xl font-bold font-tech text-slate-800">Manage Batches</h2>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8 custom-scroll flex justify-center">
+        <div class="max-w-xl w-full bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200">
+            
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="p-4 rounded-xl text-sm font-bold flex items-center gap-2
+                    {% if 'success' in message.tags %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                    {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                    <i class="fa-solid fa-check-circle"></i> {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="mb-8 p-6 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-center justify-between group hover:border-indigo-300 transition-all">
+                <div>
+                    <h3 class="font-bold text-indigo-900 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-indigo-500"></i> Auto-Generate
+                    </h3>
+                    <p class="text-xs text-indigo-700 mt-1 leading-relaxed">
+                        Create 3 batches (1, 2, 3) for every classroom.<br>
+                        <span class="opacity-75">Ex: IT11 &rarr; IT111, IT112, IT113</span>
+                    </p>
+                </div>
+                <a href="{% url 'auto_generate_batches' %}" class="px-5 py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition-all active:scale-95 whitespace-nowrap">
+                    Generate All
+                </a>
+            </div>
+
+            <div class="relative flex py-2 items-center mb-8">
+                <div class="flex-grow border-t border-slate-200"></div>
+                <span class="flex-shrink-0 mx-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">Or create manually</span>
+                <div class="flex-grow border-t border-slate-200"></div>
+            </div>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Classroom</label>
+                    {{ form.classroom }}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Batch Name</label>
+                    {{ form.name }}
+                    <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-info"></i> Example: IT611, IT612
+                    </p>
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 duration-200">
+                    <i class="fa-solid fa-plus mr-2"></i> Create Single Batch
+                </button>
+            </form>
+
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/faculty_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative">
+
+    <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <div class="flex items-center gap-4">
+            <button id="menuBtn"
+                class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+            <h2 class="text-xl font-bold font-tech text-slate-800">Overview</h2>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center bg-slate-100 rounded-full px-4 py-2 w-64">
+                <i class="fa-solid fa-search text-slate-400 text-sm"></i>
+                <input type="text" placeholder="Search student..."
+                    class="bg-transparent border-none outline-none text-sm ml-2 w-full text-slate-700" />
+            </div>
+            <a href="{% url 'logout' %}" class="text-slate-500 hover:text-red-500 transition-colors">
+                <i class="fa-solid fa-right-from-bracket text-lg"></i>
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6 custom-scroll">
+
+        <div
+            class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-xl">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600 rounded-full blur-[80px] opacity-40"></div>
+            <div class="absolute bottom-0 left-20 w-40 h-40 bg-purple-600 rounded-full blur-[60px] opacity-20"></div>
+
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                <div>
+                    <span
+                        class="inline-block px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-3 border border-white/10">🎓
+                        Faculty Portal</span>
+                    <h1 class="text-3xl font-bold font-tech mb-2">Good Morning, {{ faculty.user.first_name }}! 👋</h1>
+                    <p class="text-slate-300">
+                        You have <span class="text-white font-bold">{{ todays_lectures.count }} lectures</span>
+                        remaining today and
+                        <span class="text-white font-bold">{{ pending_grading_count }} assignments</span> pending for
+                        review.
+                    </p>
+                </div>
+                <a href="{% url 'create_assignment' %}"
+                    class="px-6 py-3 bg-white text-slate-900 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    Create Assignment
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <a href="{% url 'faculty_student_list' %}"
+                class="dash-card p-5 flex items-center gap-4 group cursor-pointer">
+                <div
+                    class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-user-group text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Students</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ student }}</h3>
+                </div>
+            </a>
+
+            <div class="dash-card p-5 flex items-center gap-4 group">
+                <div
+                    class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-list-check text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Avg Attendance</p>
+                    <h3 class="text-2xl font-bold text-slate-800"></h3>
+                </div>
+            </div>
+
+            <div class="dash-card p-5 flex items-center gap-4 group">
+                <div
+                    class="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-clipboard-check text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Pending Grading</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ pending_grading_count }}</h3>
+                </div>
+            </div>
+
+            <div class="dash-card p-5 flex items-center gap-4 group">
+                <div
+                    class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-clock text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Hours Today</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ todays_lectures.count }}h</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div class="lg:col-span-2 dash-card p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold font-tech text-slate-800">Today's Schedule</h3>
+                    <span class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">{% now "l, d M"
+                        %}</span>
+                </div>
+
+                <div class="space-y-0">
+                    {% for lecture in todays_lectures %}
+                    <div class="timeline-item relative flex gap-6 pb-8 {% if forloop.last %}!pb-0{% endif %}">
+                        <div class="w-10 flex flex-col items-center z-10">
+                            {% if forloop.first %}
+                            <div
+                                class="w-4 h-4 rounded-full border-4 border-blue-100 bg-blue-600 shadow-lg shadow-blue-500/30 mt-1.5">
+                            </div>
+                            {% else %}
+                            <div class="w-3 h-3 rounded-full bg-slate-200 mt-2"></div>
+                            {% endif %}
+                        </div>
+                        <div
+                            class="flex-1 {% if forloop.first %}bg-blue-50 p-4 rounded-xl border border-blue-100{% endif %}">
+                            <div class="flex justify-between mb-1">
+                                <h4
+                                    class="font-bold {% if forloop.first %}text-blue-700{% else %}text-slate-800{% endif %}">
+                                    {{ lecture.subject.name }}</h4>
+                                <span
+                                    class="text-xs font-bold {% if forloop.first %}text-blue-600 bg-white px-2 py-1 rounded{% else %}text-slate-500{% endif %}">
+                                    {{ lecture.start_time|time:"H:i" }} - {{ lecture.end_time|time:"H:i" }}
+                                </span>
+                            </div>
+                            <p
+                                class="text-sm {% if forloop.first %}text-blue-600/80{% else %}text-slate-500{% endif %}">
+                                Sem-{{ lecture.subject.semester }} • {{ lecture.room }}
+                            </p>
+                            {% if forloop.first %}
+                            <div class="flex gap-2 mt-3">
+                                <button
+                                    class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors">
+                                    Start Attendance
+                                </button>
+                                <button
+                                    class="px-3 py-1.5 bg-white text-blue-600 text-xs font-bold rounded-lg hover:bg-blue-100 transition-colors">
+                                    View Material
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-calendar-check text-2xl text-green-500"></i>
+                        </div>
+                        <p class="text-slate-600 font-bold">No lectures scheduled</p>
+                        <p class="text-slate-400 text-sm">Enjoy your day! 🎉</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="dash-card p-6 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold font-tech text-slate-800">Pending Grading</h3>
+                    <a href="#" class="text-xs font-bold text-blue-600 hover:underline">View All</a>
+                </div>
+
+                <div class="space-y-4 flex-1 overflow-y-auto pr-1 custom-scroll">
+                    {% for submission in recent_submissions %}
+                    <div
+                        class="p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors group cursor-pointer">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600">
+                                    {{ submission.student.user.first_name|slice:":1" }}{{ submission.student.user.last_name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-800">{{ submission.student.user.get_full_name }}</p>
+                                    <p class="text-[10px] text-slate-400">Sem-{{ submission.student.semester }} • Roll
+                                        {{ submission.student.enrollment_number|slice:"-3:" }}</p>
+                                </div>
+                            </div>
+                            {% if submission.submitted_at > submission.assignment.due_date %}
+                            <span
+                                class="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded">LATE</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium mb-2">{{ submission.assignment.title }}</p>
+                        <a href="{% url 'grade_submission' submission.id %}"
+                            class="block w-full py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors text-center">
+                            Grade Now
+                        </a>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8">
+                        <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-check text-xl text-green-500"></i>
+                        </div>
+                        <p class="text-slate-400 text-sm">All caught up!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+{% endblock %}

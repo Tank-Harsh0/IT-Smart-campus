@@ -1,0 +1,153 @@
+{% extends 'base_public.html' %}
+
+{% block title %}Curriculum - IT Department RCTI{% endblock %}
+
+{% block extra_css %}
+body { font-family: "DM Sans", sans-serif; }
+.font-heading { font-family: "Playfair Display", serif; }
+
+.subject-row {
+transition: all 0.2s;
+}
+.subject-row:hover {
+background-color: #f8fafc;
+border-left: 3px solid #3b82f6;
+}
+
+.semester-tab.active {
+background: linear-gradient(135deg, #2563eb, #0ea5e9);
+color: white;
+border-color: transparent;
+}
+{% endblock %}
+
+{% block content %}
+<header class="pt-32 pb-16 bg-slate-900 text-white relative overflow-hidden">
+  <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10">
+  </div>
+  <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500 rounded-full blur-[120px] opacity-20"></div>
+  <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600 rounded-full blur-[100px] opacity-20"></div>
+
+  <div class="max-w-7xl mx-auto px-4 relative z-10 text-center">
+    <span
+      class="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-code mb-4 inline-block">Diploma
+      in Information Technology (GTU)</span>
+    <h1 class="font-heading text-4xl md:text-6xl font-bold mb-6">Academic Curriculum</h1>
+    <p class="text-slate-400 max-w-2xl mx-auto text-lg">
+      Our curriculum follows the Gujarat Technological University (GTU) syllabus.
+      IT Department subjects follow the <span class="font-code text-cyan-400">DI0x016xxx</span> code pattern.
+    </p>
+
+    <div class="flex justify-center gap-8 mt-10">
+      <div class="text-center">
+        <p class="text-3xl font-code font-bold text-cyan-400">6</p>
+        <p class="text-xs text-slate-500 uppercase">Semesters</p>
+      </div>
+      <div class="w-px h-10 bg-slate-700"></div>
+      <div class="text-center">
+        <p class="text-3xl font-code font-bold text-cyan-400">30+</p>
+        <p class="text-xs text-slate-500 uppercase">Subjects</p>
+      </div>
+      <div class="w-px h-10 bg-slate-700"></div>
+      <div class="text-center">
+        <p class="text-3xl font-code font-bold text-cyan-400">3 Yrs</p>
+        <p class="text-xs text-slate-500 uppercase">Duration</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="py-16 px-4">
+  <div class="max-w-6xl mx-auto">
+
+    <!-- Semester Tabs -->
+    <div class="flex flex-wrap justify-center gap-2 mb-12">
+      <button class="semester-tab active px-5 py-2.5 rounded-full border border-slate-200 font-bold text-sm"
+        data-sem="1">Semester 1</button>
+      <button
+        class="semester-tab px-5 py-2.5 rounded-full border border-slate-200 font-bold text-sm bg-white text-slate-600"
+        data-sem="2">Semester 2</button>
+      <button
+        class="semester-tab px-5 py-2.5 rounded-full border border-slate-200 font-bold text-sm bg-white text-slate-600"
+        data-sem="3">Semester 3</button>
+      <button
+        class="semester-tab px-5 py-2.5 rounded-full border border-slate-200 font-bold text-sm bg-white text-slate-600"
+        data-sem="4">Semester 4</button>
+      <button
+        class="semester-tab px-5 py-2.5 rounded-full border border-slate-200 font-bold text-sm bg-white text-slate-600"
+        data-sem="5">Semester 5</button>
+      <button
+        class="semester-tab px-5 py-2.5 rounded-full border border-slate-200 font-bold text-sm bg-white text-slate-600"
+        data-sem="6">Semester 6</button>
+    </div>
+
+
+    {% for sem_num, subjects in subjects_by_semester.items %}
+    <div id="sem-{{ sem_num }}" class="semester-content{% if sem_num != 1 %} hidden{% endif %}">
+      <div class="glass-card rounded-2xl overflow-hidden border border-slate-200">
+        <!-- Unified header style for all semesters -->
+        <div class="bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-bold text-white font-tech">Semester {{ sem_num }}</h3>
+              <p class="text-slate-400 text-sm">{{ subjects.count }} subject{{ subjects.count|pluralize }}</p>
+            </div>
+            <span
+              class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-lg">
+              {{ sem_num }}</span>
+          </div>
+        </div>
+        <div class="divide-y divide-slate-100 bg-white">
+          {% for subject in subjects %}
+          <div class="subject-row flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+            <div class="flex items-center gap-4">
+              <span class="font-code text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md font-semibold">
+                {{ subject.code }}</span>
+              <span class="font-medium text-slate-800">{{ subject.name }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+              {% if subject.faculty %}
+              <span class="text-xs text-slate-400 hidden md:inline">{{ subject.faculty.user.get_full_name }}</span>
+              {% endif %}
+              {% if subject.syllabus_url %}
+              <a href="{{ subject.syllabus_url }}" target="_blank" title="View Syllabus PDF"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-colors">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="hidden sm:inline">Syllabus</span>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="px-6 py-12 text-center bg-white">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fa-solid fa-book-open text-2xl text-slate-400"></i>
+            </div>
+            <p class="text-slate-500">No subjects added for Semester {{ sem_num }} yet.</p>
+            <p class="text-xs text-slate-400 mt-1">Subjects will appear here once added by admin.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.semester-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.semester-tab').forEach(t => {
+        t.classList.remove('active');
+        t.classList.add('bg-white', 'text-slate-600');
+      });
+      tab.classList.add('active');
+      tab.classList.remove('bg-white', 'text-slate-600');
+      document.querySelectorAll('.semester-content').forEach(c => c.classList.add('hidden'));
+      document.getElementById('sem-' + tab.dataset.sem).classList.remove('hidden');
+    });
+  });
+</script>
+{% endblock %}

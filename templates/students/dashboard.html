@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard | RCTI Smart Campus{% endblock %}
+
+{% block content %}
+
+
+
+    {% include 'partials/student_sidebar.html' %}
+
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40 shrink-0">
+            <div class="flex items-center gap-4">
+                <button id="menuBtn" class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <h2 class="text-xl font-bold font-tech text-slate-800">Overview</h2>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <span class="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
+                    Sem {{ student.semester }}
+                </span>
+                <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold">
+                    {{ student.user.first_name|slice:":1" }}
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 custom-scroll">
+            
+            <div class="bg-slate-900 rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-xl shadow-slate-900/10">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600 rounded-full blur-[80px] opacity-30 animate-pulse"></div>
+                <div class="absolute bottom-0 left-20 w-40 h-40 bg-purple-600 rounded-full blur-[60px] opacity-20"></div>
+
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                    <div>
+                        <span class="inline-block px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-3 border border-white/10">
+                            ✨ Good Morning
+                        </span>
+                        <h1 class="text-3xl md:text-4xl font-bold font-tech mb-2">
+                            Welcome back, {{ student.user.first_name }}!
+                        </h1>
+                        <p class="text-slate-400 text-sm max-w-lg">
+                            You have <span class="text-white font-bold">{{ pending_assignments.count }} assignments</span> pending.
+                        </p>
+                    </div>
+                    <a href="{% url 'student_timetable' %}" class="px-6 py-3 bg-white text-slate-900 rounded-xl font-bold text-sm hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                        View Full Schedule
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                
+                <a href="{% url 'student_attendance_stats' %}" class="bg-white rounded-[1.5rem] p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-clipboard-check text-lg"></i>
+                        </div>
+                        <div class="relative w-12 h-12 rounded-full flex items-center justify-center"
+                             style="background: conic-gradient(#10b981 {{ attendance_degrees }}, #f1f5f9 0deg);">
+                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                                <span class="text-[10px] font-bold text-slate-800">{{ attendance_percentage }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="font-bold text-slate-800">Attendance</h3>
+                    <p class="text-xs text-green-600 font-bold mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-check-circle"></i> View Details
+                    </p>
+                </a>
+
+                <a href="{% url 'student_results' %}" class="bg-white rounded-[1.5rem] p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all group cursor-pointer">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-chart-pie text-lg"></i>
+                        </div>
+                        <span class="px-2 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold rounded">Sem {{ student.semester }}</span>
+                    </div>
+                    <h3 class="font-bold text-slate-800">Results</h3>
+                    <p class="text-xs text-slate-400 mt-1">View SPI / CGPA</p>
+                </a>
+
+                <a href="{% url 'student_assignment_list' %}" class="bg-white rounded-[1.5rem] p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all group cursor-pointer">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-list-check text-lg"></i>
+                        </div>
+                        {% if pending_assignments.count > 0 %}
+                        <span class="flex h-3 w-3 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <h3 class="font-bold text-slate-800">{{ pending_assignments.count }} Pending</h3>
+                    <p class="text-xs text-slate-400 mt-1">Assignments</p>
+                </a>
+
+                <div class="bg-slate-900 rounded-[1.5rem] p-5 border border-slate-800 text-white relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[60px] opacity-20"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                                <i class="fa-regular fa-clock"></i>
+                            </div>
+                            <span class="text-[10px] font-bold bg-green-500 text-slate-900 px-2 py-0.5 rounded animate-pulse">LIVE</span>
+                        </div>
+                        <h3 class="font-bold text-lg">Next Lecture</h3>
+                        <p class="text-xs text-slate-400 mt-1">Check Timetable</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="lg:col-span-2 bg-white rounded-[1.5rem] border border-slate-200 p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold font-tech text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-book-open text-slate-400 text-sm"></i> Pending Assignments
+                        </h3>
+                        <a href="{% url 'student_assignment_list' %}" class="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline">View All</a>
+                    </div>
+
+                    <div class="space-y-4">
+                        {% for asm in pending_assignments|slice:":3" %}
+                        <div class="flex gap-4 items-center p-3 hover:bg-slate-50 rounded-xl transition-colors border border-transparent hover:border-slate-100 group">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 shrink-0 font-bold text-xs group-hover:bg-blue-100 transition-colors">
+                                AS
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-bold text-slate-800 truncate">{{ asm.title }}</h4>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                                        {{ asm.subject.code }}
+                                    </span>
+                                    <span class="text-xs text-slate-400">• Due: {{ asm.due_date|date:"M d" }}</span>
+                                </div>
+                            </div>
+                            <div>
+                                {% if asm.status == 'Overdue' %}
+                                    <span class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-100">Overdue</span>
+                                {% else %}
+                                    <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg border border-orange-100">Pending</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center p-8 flex flex-col items-center justify-center text-slate-400">
+                            <i class="fa-solid fa-check-circle text-4xl text-slate-200 mb-2"></i>
+                            <p class="text-sm">No pending assignments!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[1.5rem] border border-slate-200 p-6 shadow-sm">
+                    <h3 class="text-lg font-bold font-tech text-slate-800 mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <a href="{% url 'register_face_view' %}" class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 transition-all group">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                                <i class="fa-solid fa-face-viewfinder"></i>
+                            </div>
+                            <span class="text-sm font-bold text-slate-700 group-hover:text-indigo-700">Update Face ID</span>
+                        </a>
+                        <a href="{% url 'student_timetable' %}" class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50 transition-all group">
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                                <i class="fa-solid fa-calendar-days"></i>
+                            </div>
+                            <span class="text-sm font-bold text-slate-700 group-hover:text-blue-700">Check Timetable</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+{% endblock %}

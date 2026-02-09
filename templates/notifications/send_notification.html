@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/admin_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <h2 class="text-xl font-bold font-tech text-slate-800">Broadcast Center</h2>
+        <div class="flex items-center gap-2 text-xs font-bold text-slate-500">
+            
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8 custom-scroll flex justify-center">
+        <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm h-fit">
+                <div class="mb-6 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800">Push Notification</h3>
+                        <p class="text-xs text-slate-500">Send alerts to students and faculty.</p>
+                    </div>
+                </div>
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Target Audience</label>
+                        <div class="grid grid-cols-3 gap-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="audience" value="ALL" checked class="peer sr-only">
+                                <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-sm font-bold text-slate-500 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 transition">
+                                    All Users
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="audience" value="STUDENT" class="peer sr-only">
+                                <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-sm font-bold text-slate-500 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 transition">
+                                    Students
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="audience" value="FACULTY" class="peer sr-only">
+                                <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-sm font-bold text-slate-500 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 transition">
+                                    Faculty
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Priority Level</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="priority" value="NORMAL" checked class="text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm font-bold text-slate-600">Normal Announcement</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="priority" value="HIGH" class="text-red-600 focus:ring-red-500">
+                                <span class="text-sm font-bold text-red-600 flex items-center gap-1">
+                                    <i class="fa-solid fa-fire text-xs"></i> Urgent / High
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Title</label>
+                            <input type="text" name="title" placeholder="e.g. Holiday Tomorrow" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 font-bold text-slate-700">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Message</label>
+                            <textarea name="message" rows="4" placeholder="Type your announcement details here..." required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 font-bold text-slate-700 resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> Send Notification
+                    </button>
+                </form>
+            </div>
+
+            <div class="space-y-6">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Recent Broadcasts</h3>
+                
+                {% for notif in recent_notifications %}
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0
+                        {% if notif.priority == 'HIGH' %}bg-red-50 text-red-500{% else %}bg-blue-50 text-blue-500{% endif %}">
+                        <i class="fa-solid {% if notif.priority == 'HIGH' %}fa-bell{% else %}fa-info{% endif %}"></i>
+                    </div>
+                    
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-800">{{ notif.title }}</h4>
+                            <span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded">{{ notif.created_at|date:"M d, H:i" }}</span>
+                        </div>
+                        <p class="text-sm text-slate-500 mt-1 mb-3">{{ notif.message }}</p>
+                        
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded border
+                                {% if notif.audience == 'ALL' %}bg-slate-50 text-slate-500 border-slate-200
+                                {% elif notif.audience == 'STUDENT' %}bg-blue-50 text-blue-600 border-blue-100
+                                {% else %}bg-purple-50 text-purple-600 border-purple-100{% endif %}">
+                                To: {{ notif.get_audience_display }}
+                            </span>
+                            {% if notif.priority == 'HIGH' %}
+                            <span class="text-[10px] font-bold uppercase text-red-500 flex items-center gap-1">
+                                <i class="fa-solid fa-circle text-[6px]"></i> Urgent
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <p class="text-slate-400 text-sm">No recent notifications.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </main>
+</div>
+{% endblock %}
