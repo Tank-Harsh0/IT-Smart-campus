@@ -26,6 +26,10 @@
             class="nav-item flex items-center px-6 py-3 {% if request.resolver_match.url_name == 'faculty_student_list' %}active{% endif %}">
             <i class="fa-solid fa-users w-6"></i> <span class="font-medium text-sm ml-3">Students</span>
         </a>
+        <a href="{% url 'faculty_attendance' %}"
+            class="nav-item flex items-center px-6 py-3 {% if request.resolver_match.url_name == 'faculty_attendance' %}active{% endif %}">
+            <i class="fa-solid fa-user-check w-6"></i> <span class="font-medium text-sm ml-3">Attendance</span>
+        </a>
         
         <a href="{% url 'create_assignment' %}"
             class="nav-item flex items-center px-6 py-3 {% if request.resolver_match.url_name == 'create_assignment' %}active{% endif %}">

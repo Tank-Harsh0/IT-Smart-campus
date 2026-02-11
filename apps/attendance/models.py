@@ -5,10 +5,6 @@ from apps.students.models import Student
 from apps.subjects.models import Subject
 
 class FaceData(models.Model):
-    """
-    Stores the face encoding for a student.
-    We store the encoding as a JSON list or binary blob.
-    """
     student = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='face_data')
     face_image = models.ImageField(upload_to='face_datasets/') # Reference image
     encoding_json = models.TextField() # Store numpy array as list

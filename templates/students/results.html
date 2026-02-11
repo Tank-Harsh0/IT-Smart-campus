@@ -5,96 +5,119 @@
 {% include 'partials/student_sidebar.html' %}
 
 <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
-    <header
-        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+
+    <!-- Header -->
+    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
         <div class="flex items-center gap-4">
             <button id="menuBtn"
                 class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
                 <i class="fa-solid fa-bars text-lg"></i>
             </button>
-            <h2 class="text-xl font-bold font-tech text-slate-800">Exam Results</h2>
+            <h2 class="text-xl font-bold text-slate-800">Exam Results</h2>
         </div>
         <span class="px-4 py-1.5 bg-green-50 text-green-600 rounded-full text-xs font-bold">
-            <i class="fa-solid fa-check-circle mr-1"></i>Declared: Jan 2026
+            <i class="fa-solid fa-check-circle mr-1"></i> Declared
         </span>
     </header>
 
     <main class="flex-1 overflow-y-auto p-6 custom-scroll">
-        <!-- Stats Cards -->
+
+        <!-- ===== SUMMARY CARDS ===== -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="dash-card p-0 overflow-hidden">
-                <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-[50px] opacity-20"></div>
-                    <div class="relative z-10">
-                        <p class="text-blue-200 text-xs font-bold uppercase mb-1">Current Semester</p>
-                        <h3 class="text-5xl font-bold font-tech">{{ spi }}</h3>
-                        <p class="text-xs text-blue-200 mt-2 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                            Semester {{ student.semester }} SPI
-                        </p>
-                    </div>
-                </div>
+
+            <!-- Total Marks -->
+            <div class="dash-card p-6">
+                <p class="text-xs text-slate-400 font-bold uppercase mb-1">Total Marks</p>
+                <h3 class="text-3xl font-bold text-slate-800">
+                    {{ total_obtained }} / {{ total_marks }}
+                </h3>
+                <p class="text-xs text-slate-400 mt-2">Overall score</p>
             </div>
 
-            <div class="dash-card p-6 relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-100 rounded-full blur-[40px] opacity-40"></div>
-                <p class="text-slate-400 text-xs font-bold uppercase mb-1">Cumulative GPA</p>
-                <h3 class="text-4xl font-bold font-tech text-slate-800">{{ cgpa }}</h3>
-                <p class="text-xs text-green-500 font-bold mt-2 flex items-center gap-1">
-                    <i class="fa-solid fa-arrow-trend-up"></i> +0.4 from last semester
+            <!-- Percentage -->
+            <div class="dash-card p-6">
+                <p class="text-xs text-slate-400 font-bold uppercase mb-1">Overall Percentage</p>
+                <h3 class="text-4xl font-bold text-blue-600">
+                    {{ overall_percentage }}%
+                </h3>
+                <p class="text-xs text-slate-400 mt-2">Calculated from total marks</p>
+            </div>
+
+            <!-- Subjects -->
+            <div class="dash-card p-6 flex flex-col justify-center">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-slate-500 text-sm font-bold">Subjects Evaluated</span>
+                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
+                        {{ results|length }}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400">
+                    All marks are final.
                 </p>
             </div>
 
-            <div class="dash-card p-6 flex flex-col justify-center">
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-slate-500 text-sm font-bold">Total Backlogs</span>
-                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">0</span>
-                </div>
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-slate-500 text-sm font-bold">Earned Credits</span>
-                    <span class="font-bold text-slate-800">145 / 180</span>
-                </div>
-                <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" style="width: 80%">
-                    </div>
-                </div>
-            </div>
         </div>
 
-        <!-- Grade Sheet -->
+        <!-- ===== MARKS TABLE ===== -->
         <div class="dash-card overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="font-bold text-lg text-slate-800">Grade Sheet - Semester {{ student.semester }}</h3>
-                <button class="text-sm font-bold text-blue-600 hover:underline flex items-center gap-2">
-                    <i class="fa-solid fa-download"></i> Download PDF
-                </button>
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="font-bold text-lg text-slate-800">
+                    Marks Sheet - Semester {{ student.semester }}
+                </h3>
             </div>
+
             <div class="overflow-x-auto">
-                <table class="w-full text-left min-w-[600px]">
+                <table class="w-full min-w-[700px] text-left">
                     <thead class="bg-slate-50 border-b border-slate-100">
                         <tr>
-                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Subject Code</th>
-                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Subject Name</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Code</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Subject</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">
+                                Marks (Obtained / Total)
+                            </th>
                             <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">Grade</th>
-                            <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">Points</th>
                             <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">Status</th>
                         </tr>
                     </thead>
+
                     <tbody class="divide-y divide-slate-100 text-sm">
                         {% for res in results %}
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="p-4 font-mono text-slate-500 font-bold">{{ res.code }}</td>
-                            <td class="p-4 font-bold text-slate-800">{{ res.subject }}</td>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-mono text-slate-500 font-bold">
+                                {{ res.code }}
+                            </td>
+
+                            <td class="p-4 font-bold text-slate-800">
+                                {{ res.subject }}
+                            </td>
+
+                            <td class="p-4 text-center font-bold text-slate-700">
+                                {{ res.marks_obtained }} / {{ res.total_marks }}
+                            </td>
+
                             <td class="p-4 text-center">
-                                <span
-                                    class="inline-flex w-10 h-10 rounded-xl {% if res.grade == 'A' or res.grade == 'AA' %}bg-green-50 text-green-600{% elif res.grade == 'B' or res.grade == 'BB' %}bg-blue-50 text-blue-600{% else %}bg-orange-50 text-orange-600{% endif %} items-center justify-center font-bold text-sm">
+                                <span class="inline-flex w-10 h-10 rounded-xl
+                                    {% if res.grade == 'A+' or res.grade == 'A' %}
+                                        bg-green-50 text-green-600
+                                    {% elif res.grade == 'B' %}
+                                        bg-blue-50 text-blue-600
+                                    {% elif res.grade == 'C' or res.grade == 'D' %}
+                                        bg-orange-50 text-orange-600
+                                    {% else %}
+                                        bg-red-50 text-red-600
+                                    {% endif %}
+                                    items-center justify-center font-bold text-sm">
                                     {{ res.grade }}
                                 </span>
                             </td>
-                            <td class="p-4 font-bold text-slate-600 text-center">{{ res.points }}</td>
+
                             <td class="p-4 text-center">
-                                <span
-                                    class="px-3 py-1 rounded-full {% if res.status == 'PASS' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %} text-[10px] font-bold uppercase">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase
+                                    {% if res.status == 'PASS' %}
+                                        bg-green-100 text-green-700
+                                    {% else %}
+                                        bg-red-100 text-red-700
+                                    {% endif %}">
                                     {{ res.status }}
                                 </span>
                             </td>
@@ -102,12 +125,8 @@
                         {% empty %}
                         <tr>
                             <td colspan="5" class="p-12 text-center">
-                                <div
-                                    class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <i class="fa-solid fa-chart-simple text-2xl text-slate-400"></i>
-                                </div>
-                                <p class="font-bold text-slate-600">No results available</p>
-                                <p class="text-sm text-slate-400">Results will appear here once declared</p>
+                                <p class="font-bold text-slate-600">No results published yet</p>
+                                <p class="text-sm text-slate-400">Results will appear once declared</p>
                             </td>
                         </tr>
                         {% endfor %}
@@ -116,48 +135,6 @@
             </div>
         </div>
 
-        <!-- Performance Chart Placeholder -->
-        <div class="dash-card p-6 mt-8">
-            <h3 class="font-bold text-lg text-slate-800 mb-4">Semester Progress</h3>
-            <div class="grid grid-cols-6 gap-4 h-48 items-end">
-                <div class="text-center">
-                    <div class="bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg mx-auto w-full"
-                        style="height: 70%"></div>
-                    <p class="text-xs font-bold text-slate-500 mt-2">Sem 1</p>
-                    <p class="text-xs font-bold text-slate-800">7.2</p>
-                </div>
-                <div class="text-center">
-                    <div class="bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg mx-auto w-full"
-                        style="height: 75%"></div>
-                    <p class="text-xs font-bold text-slate-500 mt-2">Sem 2</p>
-                    <p class="text-xs font-bold text-slate-800">7.5</p>
-                </div>
-                <div class="text-center">
-                    <div class="bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg mx-auto w-full"
-                        style="height: 80%"></div>
-                    <p class="text-xs font-bold text-slate-500 mt-2">Sem 3</p>
-                    <p class="text-xs font-bold text-slate-800">7.8</p>
-                </div>
-                <div class="text-center">
-                    <div class="bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg mx-auto w-full"
-                        style="height: 85%"></div>
-                    <p class="text-xs font-bold text-slate-500 mt-2">Sem 4</p>
-                    <p class="text-xs font-bold text-slate-800">8.0</p>
-                </div>
-                <div class="text-center">
-                    <div class="bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg mx-auto w-full"
-                        style="height: 88%"></div>
-                    <p class="text-xs font-bold text-slate-500 mt-2">Sem 5</p>
-                    <p class="text-xs font-bold text-slate-800">8.2</p>
-                </div>
-                <div class="text-center">
-                    <div class="bg-gradient-to-t from-green-500 to-green-400 rounded-t-lg mx-auto w-full"
-                        style="height: 92%"></div>
-                    <p class="text-xs font-bold text-slate-500 mt-2">Sem 6</p>
-                    <p class="text-xs font-bold text-green-600">8.5</p>
-                </div>
-            </div>
-        </div>
     </main>
 </div>
 {% endblock %}

@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from reportlab.lib import colors
+from django.utils import timezone
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -102,7 +103,6 @@ def faculty_schedule(request):
     # Pass the list to the template using the correct key 'weekly_schedule'
     return render(request, 'faculty/schedule.html', {'weekly_schedule': weekly_schedule})
 
-
 @login_required
 @faculty_required
 def faculty_notifications(request):
@@ -124,6 +124,16 @@ def mark_notification_read(request, notification_id):
     notification.is_read = True
     notification.save()
     return redirect('faculty_notifications')
+
+@login_required
+@faculty_required
+def faculty_attendance(request):
+    faculty = request.user.faculty_profile
+    subjects = Subject.objects.filter(faculty=faculty)
+    return render(request, 'faculty/attendance.html', {
+        'faculty': faculty,
+        'subjects': subjects
+    })
 
 @login_required
 @faculty_required

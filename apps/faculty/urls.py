@@ -1,10 +1,11 @@
 from django.urls import path
-from .views import faculty_dashboard, create_assignment, student_list, faculty_schedule, faculty_notifications, mark_notification_read, faculty_profile, edit_faculty_profile, download_schedule_pdf
+from .views import faculty_dashboard, create_assignment, student_list, faculty_schedule, faculty_notifications, mark_notification_read, faculty_profile, edit_faculty_profile, download_schedule_pdf, faculty_attendance
 
 urlpatterns = [
     path('dashboard/', faculty_dashboard, name='faculty_dashboard'),
     path('schedule/', faculty_schedule, name='faculty_schedule'),
     path('students/', student_list, name='faculty_student_list'),
+    path('attendance/', faculty_attendance, name='faculty_attendance'),
     path('assignment/create/', create_assignment, name='create_assignment'),
     path('assignment/create/<int:subject_id>/', create_assignment, name='create_assignment_for_subject'),
     path('profile/', faculty_profile, name='faculty_profile'),

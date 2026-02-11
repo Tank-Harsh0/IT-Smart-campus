@@ -1,10 +1,8 @@
 import os
 from django.db import models
 from apps.subjects.models import Subject
-from apps.students.models import Student
 
 def assignment_upload_path(instance, filename):
-    # Format: assignments/subject_code/filename
     return os.path.join('assignments', instance.subject.code, filename)
 
 class Assignment(models.Model):

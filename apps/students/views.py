@@ -181,28 +181,40 @@ def student_profile(request):
 @student_required
 def student_results(request):
     student = request.user.student_profile
-    results = Result.objects.filter(student=student).select_related('subject')
-    
-    total_credits = 0
-    total_weighted_points = 0
+    results_qs = Result.objects.filter(student=student).select_related('subject')
+
     processed_results = []
-    
-    for res in results:
-        points = res.calculate_points()
-        total_credits += res.credits
-        total_weighted_points += (points * res.credits)
+    total_obtained = 0
+    total_marks = 0
+
+    for res in results_qs:
+        obtained = float(res.marks_obtained)
+        out_of = float(res.total_marks)
+
+        total_obtained += obtained
+        total_marks += out_of
+
         processed_results.append({
             'subject': res.subject.name,
             'code': res.subject.code,
+            'marks_obtained': obtained,
+            'total_marks': out_of,
             'grade': res.grade,
-            'points': points,
             'status': 'PASS' if res.is_passed() else 'FAIL'
         })
 
-    spi = round(total_weighted_points / total_credits, 2) if total_credits > 0 else 0.00
+    overall_percentage = round(
+        (total_obtained / total_marks) * 100, 2
+    ) if total_marks > 0 else 0.00
+
     return render(request, 'students/results.html', {
-        'student': student, 'results': processed_results, 'spi': spi, 'cgpa': spi
+        'student': student,
+        'results': processed_results,
+        'total_obtained': round(total_obtained, 2),
+        'total_marks': round(total_marks, 2),
+        'overall_percentage': overall_percentage,
     })
+
 
 # ==========================================
 # 6. TIMETABLE (Updated to TimetableSlot)
