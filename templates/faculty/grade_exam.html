@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/faculty_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+    <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <div class="flex items-center gap-4">
+            <button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100 md:hidden mr-2" aria-label="Open sidebar">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">Grade: {{ subject.code }}</h2>
+                <p class="text-xs text-slate-500">{{ exam.name }} • Max Marks: {{ exam_subject.total_marks }}</p>
+            </div>
+        </div>
+        <a href="{% url 'faculty_exam_list' %}" class="text-xs font-bold text-slate-500 hover:text-slate-800">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back
+        </a>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6 custom-scroll">
+        <form method="post" id="gradeForm">
+            {% csrf_token %}
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <!-- Info Bar -->
+                <div class="p-4 bg-indigo-50 border-b border-indigo-100 flex items-center justify-between">
+                    <p class="text-sm font-bold text-indigo-700">
+                        <i class="fa-solid fa-info-circle mr-1"></i>
+                        Enter marks for each student (0 to {{ exam_subject.total_marks }})
+                    </p>
+                    <span class="text-xs text-indigo-500 font-bold">{{ student_data|length }} Students</span>
+                </div>
+
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="p-4 pl-6 text-xs font-bold text-slate-500 uppercase w-8">#</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Enrollment</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Student Name</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">
+                                Marks (/ {{ exam_subject.total_marks }})
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm">
+                        {% for sd in student_data %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-4 pl-6 text-slate-400 font-mono">{{ forloop.counter }}</td>
+                            <td class="p-4 font-mono text-slate-600 font-bold">{{ sd.student.enrollment_number }}</td>
+                            <td class="p-4 font-bold text-slate-800">{{ sd.student.user.get_full_name }}</td>
+                            <td class="p-4 text-center">
+                                <input type="number" name="marks_{{ sd.student.id }}" value="{{ sd.existing_marks }}"
+                                    min="0" max="{{ exam_subject.total_marks }}" placeholder="—"
+                                    class="w-24 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-center font-bold text-slate-700 focus:outline-none focus:border-indigo-500 focus:bg-white transition">
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="p-8 text-center text-slate-400">
+                                No students found in Semester {{ exam.semester }}.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if student_data %}
+            <div class="mt-6 flex justify-end gap-3">
+                <a href="{% url 'faculty_exam_list' %}"
+                    class="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition text-sm">
+                    Cancel
+                </a>
+                <button type="submit"
+                    class="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg shadow-green-500/20 text-sm">
+                    <i class="fa-solid fa-save mr-2"></i> Save Grades
+                </button>
+            </div>
+            {% endif %}
+        </form>
+    </main>
+</div>
+{% endblock %}

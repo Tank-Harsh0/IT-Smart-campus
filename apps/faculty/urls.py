@@ -1,5 +1,8 @@
 from django.urls import path
-from .views import faculty_dashboard, create_assignment, student_list, faculty_schedule, faculty_notifications, mark_notification_read, faculty_profile, edit_faculty_profile, download_schedule_pdf, faculty_attendance
+from .views import (faculty_dashboard, create_assignment, student_list, faculty_schedule, 
+                    faculty_notifications, mark_notification_read, faculty_profile, 
+                    edit_faculty_profile, download_schedule_pdf, faculty_attendance,
+                    faculty_exam_list, faculty_grade_exam)
 
 urlpatterns = [
     path('dashboard/', faculty_dashboard, name='faculty_dashboard'),
@@ -13,4 +16,7 @@ urlpatterns = [
     path('notifications/', faculty_notifications, name='faculty_notifications'),
     path('notifications/read/<int:notification_id>/', mark_notification_read, name='mark_notification_read'),
     path('schedule/pdf/', download_schedule_pdf, name='download_schedule_pdf'),
+    path('exams/', faculty_exam_list, name='faculty_exam_list'),
+    path('exams/<int:exam_id>/grade/<int:subject_id>/', faculty_grade_exam, name='faculty_grade_exam'),
 ]
+

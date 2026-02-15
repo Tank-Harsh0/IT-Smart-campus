@@ -151,13 +151,10 @@
     </style>
 </head>
 
-<body class="flex h-screen overflow-hidden mx-w- text-slate-800">
+<body class="flex h-screen overflow-hidden text-slate-800">
     <!-- Mobile Sidebar Overlay -->
-    <div
-  id="sidebarOverlay"
-  class="sidebar-overlay fixed inset-0 hidden z-40 md:hidden"
-  onclick="toggleSidebar()">
-</div>
+    <div id="sidebarOverlay" class="sidebar-overlay fixed inset-0 hidden z-40 md:hidden" onclick="toggleSidebar()">
+    </div>
 
 
     {% block content %}{% endblock %}

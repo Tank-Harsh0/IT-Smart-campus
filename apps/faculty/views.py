@@ -15,6 +15,8 @@ from apps.faculty.forms import AssignmentCreateForm, FacultyProfileForm
 from apps.students.models import Student
 from apps.notifications.models import Notification
 from apps.core.models import TimetableSlot
+from apps.exams.models import Exam, ExamSubject, ExamResult
+
 
 @login_required
 @faculty_required
@@ -231,3 +233,110 @@ def download_schedule_pdf(request):
     # 7. Build
     doc.build(elements)
     return response
+
+
+# ===========================
+# FACULTY: Exam List
+# ===========================
+@login_required
+@faculty_required
+def faculty_exam_list(request):
+    faculty = request.user.faculty_profile
+    my_subjects = Subject.objects.filter(faculty=faculty)
+    today = timezone.now().date()
+
+    # Find exams that have my subjects AND end_date has passed
+    exams_with_subjects = []
+    all_exams = Exam.objects.filter(
+        exam_subjects__subject__in=my_subjects,
+        end_date__lte=today
+    ).distinct().order_by('-end_date')
+
+    for exam in all_exams:
+        # Get only subjects assigned to this faculty
+        my_exam_subjects = ExamSubject.objects.filter(
+            exam=exam, subject__in=my_subjects
+        ).select_related('subject')
+
+        subjects_info = []
+        for es in my_exam_subjects:
+            total_students = Student.objects.filter(semester=exam.semester).count()
+            graded = ExamResult.objects.filter(
+                exam=exam, subject=es.subject, marks_obtained__isnull=False
+            ).count()
+            subjects_info.append({
+                'exam_subject': es,
+                'graded': graded,
+                'total': total_students,
+                'complete': graded == total_students and total_students > 0,
+            })
+
+        exams_with_subjects.append({
+            'exam': exam,
+            'subjects': subjects_info,
+        })
+
+    return render(request, 'faculty/exams.html', {
+        'exams_with_subjects': exams_with_subjects,
+    })
+
+
+# ===========================
+# FACULTY: Grade Students
+# ===========================
+@login_required
+@faculty_required
+def faculty_grade_exam(request, exam_id, subject_id):
+    faculty = request.user.faculty_profile
+    exam = get_object_or_404(Exam, id=exam_id)
+    subject = get_object_or_404(Subject, id=subject_id, faculty=faculty)
+    exam_subject = get_object_or_404(ExamSubject, exam=exam, subject=subject)
+
+    # Get all students in this semester
+    students = Student.objects.filter(semester=exam.semester).order_by('enrollment_number')
+
+    if request.method == 'POST':
+        graded_count = 0
+        for student in students:
+            marks_val = request.POST.get(f'marks_{student.id}', '').strip()
+            if marks_val:
+                try:
+                    marks = int(marks_val)
+                    if marks < 0 or marks > exam_subject.total_marks:
+                        continue
+                    ExamResult.objects.update_or_create(
+                        exam=exam,
+                        subject=subject,
+                        student=student,
+                        defaults={
+                            'marks_obtained': marks,
+                            'total_marks': exam_subject.total_marks,
+                            'graded_by': faculty,
+                            'graded_at': timezone.now(),
+                        }
+                    )
+                    graded_count += 1
+                except (ValueError, TypeError):
+                    continue
+
+        messages.success(request, f"Graded {graded_count} students for {subject.code}!")
+        return redirect('faculty_exam_list')
+
+    # GET: pre-fill existing grades
+    existing_results = {}
+    for er in ExamResult.objects.filter(exam=exam, subject=subject):
+        existing_results[er.student_id] = er.marks_obtained
+
+    student_data = []
+    for student in students:
+        student_data.append({
+            'student': student,
+            'existing_marks': existing_results.get(student.id, ''),
+        })
+
+    return render(request, 'faculty/grade_exam.html', {
+        'exam': exam,
+        'subject': subject,
+        'exam_subject': exam_subject,
+        'student_data': student_data,
+    })

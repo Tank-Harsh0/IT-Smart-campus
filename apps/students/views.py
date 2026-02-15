@@ -181,39 +181,59 @@ def student_profile(request):
 @student_required
 def student_results(request):
     student = request.user.student_profile
-    results_qs = Result.objects.filter(student=student).select_related('subject')
 
-    processed_results = []
-    total_obtained = 0
-    total_marks = 0
+    from apps.exams.models import ExamResult, Exam
 
-    for res in results_qs:
-        obtained = float(res.marks_obtained)
-        out_of = float(res.total_marks)
+    # Get all published exams relevant to this student's semester
+    published_exams = Exam.objects.filter(
+        is_published=True,
+        semester=student.semester
+    ).order_by('-published_at')
 
-        total_obtained += obtained
-        total_marks += out_of
+    exam_results = []
+    for exam in published_exams:
+        results = ExamResult.objects.filter(
+            exam=exam, student=student, marks_obtained__isnull=False
+        ).select_related('subject')
 
-        processed_results.append({
-            'subject': res.subject.name,
-            'code': res.subject.code,
-            'marks_obtained': obtained,
-            'total_marks': out_of,
-            'grade': res.grade,
-            'status': 'PASS' if res.is_passed() else 'FAIL'
+        if not results.exists():
+            continue
+
+        subjects = []
+        total_obtained = 0
+        total_marks = 0
+
+        for r in results:
+            obtained = r.marks_obtained
+            out_of = r.total_marks
+            total_obtained += obtained
+            total_marks += out_of
+            subjects.append({
+                'subject': r.subject.name,
+                'code': r.subject.code,
+                'marks_obtained': obtained,
+                'total_marks': out_of,
+                'grade': r.grade,
+                'status': 'PASS' if r.is_passed else 'FAIL',
+            })
+
+        overall_percentage = round(
+            (total_obtained / total_marks) * 100, 2
+        ) if total_marks > 0 else 0.00
+
+        exam_results.append({
+            'exam': exam,
+            'subjects': subjects,
+            'total_obtained': total_obtained,
+            'total_marks': total_marks,
+            'overall_percentage': overall_percentage,
         })
-
-    overall_percentage = round(
-        (total_obtained / total_marks) * 100, 2
-    ) if total_marks > 0 else 0.00
 
     return render(request, 'students/results.html', {
         'student': student,
-        'results': processed_results,
-        'total_obtained': round(total_obtained, 2),
-        'total_marks': round(total_marks, 2),
-        'overall_percentage': overall_percentage,
+        'exam_results': exam_results,
     })
+
 
 
 # ==========================================

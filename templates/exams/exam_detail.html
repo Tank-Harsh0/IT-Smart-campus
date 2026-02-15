@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/admin_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc] min-w-0">
+    <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <div class="flex items-center gap-4">
+            <button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100 md:hidden mr-2" aria-label="Open sidebar">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            
+            <div>
+                <h2 class="text-xl font-bold font-tech text-slate-800">{{ exam.name }}</h2>
+                <p class="text-xs text-slate-500">{{ exam.get_exam_type_display }} • Semester {{ exam.semester }}</p>
+            </div>
+        </div>
+        <a href="{% url 'exam_list' %}" class="text-xs font-bold text-slate-500 hover:text-slate-800">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back to Exams
+        </a>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8 custom-scroll">
+
+        <!-- Info Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                <p class="text-xs text-slate-400 font-bold uppercase mb-1">Duration</p>
+                <p class="text-sm font-bold text-slate-800">{{ exam.start_date|date:"M d" }} - {{ exam.end_date|date:"M
+                    d, Y" }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                <p class="text-xs text-slate-400 font-bold uppercase mb-1">Subjects</p>
+                <p class="text-2xl font-bold text-indigo-600">{{ subject_progress|length }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                <p class="text-xs text-slate-400 font-bold uppercase mb-1">Students</p>
+                <p class="text-2xl font-bold text-slate-800">{{ total_students }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                <p class="text-xs text-slate-400 font-bold uppercase mb-1">Result Status</p>
+                {% if exam.is_published %}
+                <p class="text-sm font-bold text-green-600"><i class="fa-solid fa-check-circle mr-1"></i> Published</p>
+                <p class="text-[10px] text-slate-400 mt-1">{{ exam.published_at | date:"M d, Y h:i A" }}</p>
+                {% else %}
+                <p class="text-sm font-bold text-amber-600"><i class="fa-solid fa-clock mr-1"></i> Unpublished</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mb-8 flex flex-wrap gap-3">
+            <a href="{% url 'edit_exam' exam.id %}"
+                class="px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition text-sm shadow-sm">
+                <i class="fa-solid fa-pen mr-2"></i> Edit Exam
+            </a>
+            <a href="{% url 'exam_timetable' exam.id %}"
+                class="px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition text-sm shadow-sm">
+                <i class="fa-solid fa-calendar-days mr-2"></i> Set Timetable
+            </a>
+            {% if not exam.is_published %}
+            <a href="{% url 'publish_exam' exam.id %}"
+                class="px-5 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg shadow-green-500/20 text-sm"
+                onclick="return confirm('Publish results for {{ exam.name }}? Students will be able to see their marks.')">
+                <i class="fa-solid fa-rocket mr-2"></i> Publish Results
+            </a>
+            {% else %}
+            <a href="{% url 'unpublish_exam' exam.id %}"
+                class="px-5 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition shadow-lg shadow-amber-500/20 text-sm"
+                onclick="return confirm('Unpublish results? Students will no longer see marks.')">
+                <i class="fa-solid fa-eye-slash mr-2"></i> Unpublish Results
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Grading Progress per Subject -->
+        <div class="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="font-bold text-lg text-slate-800">Grading Progress</h3>
+                <p class="text-xs text-slate-500 mt-1">Faculty must grade students after the exam end date.</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="p-4 pl-6 text-xs font-bold text-slate-500 uppercase">Subject</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Code</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Marks</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Schedule</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Graded</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm">
+                        {% for sp in subject_progress %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-4 pl-6 font-bold text-slate-800">{{ sp.subject.name }}</td>
+                            <td class="p-4 font-mono text-slate-500">{{ sp.subject.code }}</td>
+                            <td class="p-4 font-bold text-slate-600">{{ sp.total_marks }}</td>
+                            <td class="p-4">
+                                {% if sp.schedule %}
+                                <span class="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-1 rounded-lg">
+                                    {{ sp.schedule.exam_date|date:"M d" }} • {{ sp.schedule.start_time|time:"h:i A" }}
+                                </span>
+                                {% else %}
+                                <span class="text-xs text-slate-400">Not set</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-4">
+                                <span
+                                    class="font-bold {% if sp.graded == sp.total %}text-green-600{% else %}text-amber-600{% endif %}">
+                                    {{ sp.graded }} / {{ sp.total }}
+                                </span>
+                            </td>
+                            <td class="p-4">
+                                <div class="w-full bg-slate-100 rounded-full h-2">
+                                    <div class="h-2 rounded-full transition-all duration-500
+                                         {% if sp.percent == 100 %}bg-green-500{% elif sp.percent > 0 %}bg-amber-400{% else %}bg-slate-200{% endif %}"
+                                        style="width: {{ sp.percent }}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="p-8 text-center text-slate-400">
+                                No subjects configured for this exam.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+{% endblock %}

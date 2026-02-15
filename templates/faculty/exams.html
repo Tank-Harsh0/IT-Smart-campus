@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/faculty_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+    <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <div class="flex items-center gap-4">
+            <button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100 md:hidden mr-2" aria-label="Open sidebar">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            
+            <h2 class="text-xl font-bold text-slate-800">Grade Exams</h2>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6 custom-scroll">
+
+        {% if not exams_with_subjects %}
+        <div class="text-center py-20">
+            <div class="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-file-signature text-3xl text-slate-400"></i>
+            </div>
+            <h3 class="font-bold text-lg text-slate-600">No Exams to Grade</h3>
+            <p class="text-sm text-slate-400 mt-2">Exams will appear here after their end date passes.</p>
+        </div>
+        {% endif %}
+
+        <div class="space-y-6">
+            {% for item in exams_with_subjects %}
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <!-- Exam Header -->
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800">{{ item.exam.name }}</h3>
+                        <p class="text-xs text-slate-500 mt-1">
+                            {{ item.exam.get_exam_type_display }} • Semester {{ item.exam.semester }} •
+                            Ended {{ item.exam.end_date|date:"M d, Y" }}
+                        </p>
+                    </div>
+                    {% if item.exam.is_published %}
+                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase">
+                        <i class="fa-solid fa-check mr-1"></i> Published
+                    </span>
+                    {% else %}
+                    <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold uppercase">
+                        Awaiting Publish
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Subjects to Grade -->
+                <div class="divide-y divide-slate-100">
+                    {% for subj in item.subjects %}
+                    <div class="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                                <i class="fa-solid fa-book"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">{{ subj.exam_subject.subject.name }}</p>
+                                <p class="text-xs text-slate-500">{{ subj.exam_subject.subject.code }} • Max: {{ subj.exam_subject.total_marks }} marks</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span
+                                class="text-sm font-bold {% if subj.complete %}text-green-600{% else %}text-amber-600{% endif %}">
+                                {{ subj.graded }}/{{ subj.total }} graded
+                            </span>
+                            <a href="{% url 'faculty_grade_exam' item.exam.id subj.exam_subject.subject.id %}"
+                                class="px-4 py-2 rounded-lg text-xs font-bold transition
+                               {% if subj.complete %}bg-green-50 text-green-700 hover:bg-green-100{% else %}bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg{% endif %}">
+                                {% if subj.complete %}
+                                <i class="fa-solid fa-check mr-1"></i> Review
+                                {% else %}
+                                <i class="fa-solid fa-pen mr-1"></i> Grade
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -1,16 +1,14 @@
 {% extends 'base.html' %}
 
 {% block content %}
-{% include 'partials/admin_sidebar.html' %} <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
-    <button
-    id="menuBtn"
-    class="p-2 rounded-lg hover:bg-slate-100"
-    aria-label="Open sidebar"
-  >
-    <i class="fa-solid fa-bars text-xl"></i>
-  </button>
-    
-    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+{% include 'partials/admin_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc] min-w-0">
+
+
+
+    <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
         <h2 class="text-xl font-bold font-tech text-slate-800">Schedule New Exam</h2>
         <a href="{% url 'exam_list' %}" class="text-xs font-bold text-slate-500 hover:text-slate-800">
             <i class="fa-solid fa-xmark mr-1"></i> Cancel
@@ -18,69 +16,150 @@
     </header>
 
     <main class="flex-1 overflow-y-auto p-8 custom-scroll flex justify-center">
-        
-        <div class="max-w-3xl w-full bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200">
-            <div class="mb-8 flex items-center gap-4">
-                <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 text-xl">
-                    <i class="fa-solid fa-calendar-plus"></i>
+        <div class="max-w-4xl w-full">
+            <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200">
+
+                <!-- Header Icon -->
+                <div class="mb-8 flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 text-xl">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800">Exam Details</h3>
+                        <p class="text-xs text-slate-500">Configure exam, select subjects, and set marks.</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="font-bold text-lg text-slate-800">Exam Details</h3>
-                    <p class="text-xs text-slate-500">Set dates and semester for the upcoming evaluation.</p>
-                </div>
+
+                <form method="post" class="space-y-6" id="examForm">
+                    {% csrf_token %}
+
+                    <!-- Exam Title -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Exam Title</label>
+                        <input type="text" name="name" placeholder="e.g. Mid Semester Jan 2026" required
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
+                    </div>
+
+                    <!-- Type + Semester -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Exam Type</label>
+                            <select name="exam_type"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
+                                <option value="MID">Mid-Semester</option>
+                                <option value="END">End-Semester</option>
+                                <option value="REM">Remedial</option>
+                                <option value="PRAC">Practical</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Target
+                                Semester</label>
+                            <select name="semester" id="semesterSelect"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
+                                <option value="">Select Semester</option>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dates -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Start Date</label>
+                            <input type="date" name="start_date" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">End Date</label>
+                            <input type="date" name="end_date" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
+                        </div>
+                    </div>
+
+                    <!-- Subjects Section -->
+                    <div id="subjectsSection" class="hidden">
+                        <div class="border-t border-slate-200 pt-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div
+                                    class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
+                                    <i class="fa-solid fa-book"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800">Subjects & Marks</h4>
+                                    <p class="text-xs text-slate-500">Select subjects and configure total marks for
+                                        each.</p>
+                                </div>
+                            </div>
+
+                            <div id="subjectsList" class="space-y-3">
+                                <!-- Populated by JS -->
+                            </div>
+
+                            <p id="noSubjects" class="hidden text-sm text-slate-400 text-center py-4">
+                                No subjects found for this semester.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="pt-4">
+                        <button type="submit"
+                            class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check"></i> Create Exam
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <form method="post" class="space-y-6">
-                {% csrf_token %}
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Exam Title</label>
-                    <input type="text" name="name" placeholder="e.g. Summer 2026 Final Exam" required
-                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Exam Type</label>
-                        <select name="exam_type" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
-                            <option value="MID">Mid-Semester</option>
-                            <option value="REM">Remedial Mid</option>
-                            <option value="PRAC">Practical</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Target Semester</label>
-                        <select name="semester" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
-                            <option value="1">Semester 1</option>
-                            <option value="2">Semester 2</option>
-                            <option value="3">Semester 3</option>
-                            <option value="4">Semester 4</option>
-                            <option value="5">Semester 5</option>
-                            <option value="6">Semester 6</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Start Date</label>
-                        <input type="date" name="start_date" required
-                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">End Date</label>
-                        <input type="date" name="end_date" required
-                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-slate-700">
-                    </div>
-                </div>
-
-                <div class="pt-4">
-                    <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-check"></i> Create Schedule
-                    </button>
-                </div>
-            </form>
         </div>
     </main>
 </div>
+
+<script>
+    const subjectsBySemester = {{ subjects_by_semester| safe }};
+
+    const semesterSelect = document.getElementById('semesterSelect');
+    const subjectsSection = document.getElementById('subjectsSection');
+    const subjectsList = document.getElementById('subjectsList');
+    const noSubjects = document.getElementById('noSubjects');
+
+    semesterSelect.addEventListener('change', function () {
+        const sem = this.value;
+        subjectsList.innerHTML = '';
+
+        if (!sem || !subjectsBySemester[sem] || subjectsBySemester[sem].length === 0) {
+            subjectsSection.classList.remove('hidden');
+            noSubjects.classList.remove('hidden');
+            return;
+        }
+
+        noSubjects.classList.add('hidden');
+        subjectsSection.classList.remove('hidden');
+
+        subjectsBySemester[sem].forEach(sub => {
+            const div = document.createElement('div');
+            div.className = 'flex flex-wrap items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-300 transition';
+            div.innerHTML = `
+                <input type="checkbox" name="subjects" value="${sub.id}" id="subj_${sub.id}" checked
+                    class="w-5 h-5 shrink-0 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                <label for="subj_${sub.id}" class="flex-1 min-w-0 cursor-pointer">
+                    <span class="font-bold text-slate-800 break-words">${sub.name}</span>
+                    <span class="text-xs text-slate-500 ml-2 whitespace-nowrap">(${sub.code})</span>
+                </label>
+                <div class="flex items-center gap-2 shrink-0">
+                    <label class="text-xs font-bold text-slate-500 whitespace-nowrap">Max Marks:</label>
+                    <input type="number" name="marks_${sub.id}" value="20" min="1" max="200"
+                        class="w-20 px-3 py-2 bg-white border border-slate-200 rounded-lg text-center font-bold text-slate-700 focus:outline-none focus:border-indigo-500">
+                </div>
+            `;
+            subjectsList.appendChild(div);
+        });
+    });
+</script>
 {% endblock %}

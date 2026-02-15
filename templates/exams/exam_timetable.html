@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/admin_sidebar.html' %}
+
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc] min-w-0">
+
+
+    <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <div>
+            <h2 class="text-xl font-bold font-tech text-slate-800">Exam Timetable</h2>
+            <p class="text-xs text-slate-500">{{ exam.name }} • Semester {{ exam.semester }}</p>
+        </div>
+        <a href="{% url 'exam_detail' exam.id %}" class="text-xs font-bold text-slate-500 hover:text-slate-800">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back to Exam
+        </a>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8 custom-scroll flex justify-center">
+        <div class="max-w-5xl w-full">
+            <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200">
+
+                <div class="mb-8 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600 text-xl">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800">Set Schedule</h3>
+                        <p class="text-xs text-slate-500">Assign date, time, and room for each subject. Multiple
+                            subjects can be on the same day.</p>
+                    </div>
+                </div>
+
+                {% if not subjects_data %}
+                <div class="text-center py-12">
+                    <p class="text-slate-400 font-bold">No subjects configured for this exam.</p>
+                    <a href="{% url 'edit_exam' exam.id %}"
+                        class="text-indigo-600 text-sm font-bold mt-2 inline-block hover:underline">
+                        <i class="fa-solid fa-plus mr-1"></i> Add subjects first
+                    </a>
+                </div>
+                {% else %}
+
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+
+                    {% for item in subjects_data %}
+                    <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 hover:border-teal-300 transition">
+                        <!-- Subject Header -->
+                        <div class="flex items-center gap-3 mb-4">
+                            <div
+                                class="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 text-sm">
+                                <i class="fa-solid fa-book"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-bold text-slate-800 break-words">{{ item.es.subject.name }}</p>
+                                <p class="text-xs text-slate-500">{{ item.es.subject.code }} • Max: {{
+                                    item.es.total_marks }} marks</p>
+                            </div>
+                        </div>
+
+                        <!-- Schedule Fields -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Date</label>
+                                <input type="date" name="date_{{ item.es.id }}"
+                                    value="{% if item.schedule %}{{ item.schedule.exam_date|date:'Y-m-d' }}{% endif %}"
+                                    min="{{ exam.start_date|date:'Y-m-d' }}" max="{{ exam.end_date|date:'Y-m-d' }}"
+                                    required
+                                    class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 font-bold text-slate-700 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Start
+                                    Time</label>
+                                <input type="time" name="start_{{ item.es.id }}"
+                                    value="{% if item.schedule %}{{ item.schedule.start_time|time:'H:i' }}{% endif %}"
+                                    required
+                                    class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 font-bold text-slate-700 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">End
+                                    Time</label>
+                                <input type="time" name="end_{{ item.es.id }}"
+                                    value="{% if item.schedule %}{{ item.schedule.end_time|time:'H:i' }}{% endif %}"
+                                    required
+                                    class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 font-bold text-slate-700 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Room /
+                                    Hall</label>
+                                <input type="text" name="room_{{ item.es.id }}"
+                                    value="{% if item.schedule %}{{ item.schedule.room }}{% endif %}"
+                                    placeholder="e.g. Room 201"
+                                    class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 font-bold text-slate-700 text-sm">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Submit -->
+                    <div class="pt-4">
+                        <button type="submit"
+                            class="w-full py-4 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 transition shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-calendar-check"></i> Save Timetable
+                        </button>
+                    </div>
+                </form>
+
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

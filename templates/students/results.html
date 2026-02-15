@@ -7,132 +7,128 @@
 <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
 
     <!-- Header -->
-    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+    <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
         <div class="flex items-center gap-4">
-            <button id="menuBtn"
-                class="md:hidden w-10 h-10 rounded-xl border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
-                <i class="fa-solid fa-bars text-lg"></i>
+            <button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100 md:hidden mr-2" aria-label="Open sidebar">
+                <i class="fa-solid fa-bars text-xl"></i>
             </button>
+            
             <h2 class="text-xl font-bold text-slate-800">Exam Results</h2>
         </div>
-        <span class="px-4 py-1.5 bg-green-50 text-green-600 rounded-full text-xs font-bold">
-            <i class="fa-solid fa-check-circle mr-1"></i> Declared
-        </span>
     </header>
 
     <main class="flex-1 overflow-y-auto p-6 custom-scroll">
 
-        <!-- ===== SUMMARY CARDS ===== -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-            <!-- Total Marks -->
-            <div class="dash-card p-6">
-                <p class="text-xs text-slate-400 font-bold uppercase mb-1">Total Marks</p>
-                <h3 class="text-3xl font-bold text-slate-800">
-                    {{ total_obtained }} / {{ total_marks }}
-                </h3>
-                <p class="text-xs text-slate-400 mt-2">Overall score</p>
+        {% if not exam_results %}
+        <div class="text-center py-20">
+            <div class="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-chart-simple text-3xl text-slate-400"></i>
             </div>
+            <h3 class="font-bold text-lg text-slate-600">No Results Published Yet</h3>
+            <p class="text-sm text-slate-400 mt-2">Results will appear here once declared by the admin.</p>
+        </div>
+        {% endif %}
 
-            <!-- Percentage -->
-            <div class="dash-card p-6">
-                <p class="text-xs text-slate-400 font-bold uppercase mb-1">Overall Percentage</p>
-                <h3 class="text-4xl font-bold text-blue-600">
-                    {{ overall_percentage }}%
-                </h3>
-                <p class="text-xs text-slate-400 mt-2">Calculated from total marks</p>
-            </div>
+        <div class="space-y-8">
+            {% for er in exam_results %}
 
-            <!-- Subjects -->
-            <div class="dash-card p-6 flex flex-col justify-center">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-slate-500 text-sm font-bold">Subjects Evaluated</span>
-                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
-                        {{ results|length }}
+            <!-- Exam Section -->
+            <div class="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-hidden">
+
+                <!-- Exam Header -->
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800">{{ er.exam.name }}</h3>
+                        <p class="text-xs text-slate-500 mt-1">
+                            {{ er.exam.get_exam_type_display }} • Semester {{ er.exam.semester }} •
+                            Published {{ er.exam.published_at|date:"M d, Y" }}
+                        </p>
+                    </div>
+                    <span class="px-4 py-1.5 bg-green-50 text-green-600 rounded-full text-xs font-bold">
+                        <i class="fa-solid fa-check-circle mr-1"></i> Declared
                     </span>
                 </div>
-                <p class="text-xs text-slate-400">
-                    All marks are final.
-                </p>
+
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 border-b border-slate-100">
+                    <div class="bg-slate-50 rounded-xl p-4">
+                        <p class="text-xs text-slate-400 font-bold uppercase mb-1">Total Marks</p>
+                        <h3 class="text-2xl font-bold text-slate-800">
+                            {{ er.total_obtained }} / {{ er.total_marks }}
+                        </h3>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4">
+                        <p class="text-xs text-slate-400 font-bold uppercase mb-1">Overall Percentage</p>
+                        <h3 class="text-3xl font-bold text-blue-600">
+                            {{ er.overall_percentage }}%
+                        </h3>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-slate-500 text-sm font-bold">Subjects</span>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
+                                {{ er.subjects|length }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Marks Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[600px] text-left">
+                        <thead class="bg-slate-50 border-b border-slate-100">
+                            <tr>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase">Code</th>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase">Subject</th>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">
+                                    Marks
+                                </th>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">Grade</th>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            {% for res in er.subjects %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-4 font-mono text-slate-500 font-bold">{{ res.code }}</td>
+                                <td class="p-4 font-bold text-slate-800">{{ res.subject }}</td>
+                                <td class="p-4 text-center font-bold text-slate-700">
+                                    {{ res.marks_obtained }} / {{ res.total_marks }}
+                                </td>
+                                <td class="p-4 text-center">
+                                    <span class="inline-flex w-10 h-10 rounded-xl
+                                        {% if res.grade == 'A+' or res.grade == 'A' %}
+                                            bg-green-50 text-green-600
+                                        {% elif res.grade == 'B' %}
+                                            bg-blue-50 text-blue-600
+                                        {% elif res.grade == 'C' or res.grade == 'D' %}
+                                            bg-orange-50 text-orange-600
+                                        {% else %}
+                                            bg-red-50 text-red-600
+                                        {% endif %}
+                                        items-center justify-center font-bold text-sm">
+                                        {{ res.grade }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase
+                                        {% if res.status == 'PASS' %}
+                                            bg-green-100 text-green-700
+                                        {% else %}
+                                            bg-red-100 text-red-700
+                                        {% endif %}">
+                                        {{ res.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-        </div>
-
-        <!-- ===== MARKS TABLE ===== -->
-        <div class="dash-card overflow-hidden">
-            <div class="p-6 border-b border-slate-100">
-                <h3 class="font-bold text-lg text-slate-800">
-                    Marks Sheet - Semester {{ student.semester }}
-                </h3>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[700px] text-left">
-                    <thead class="bg-slate-50 border-b border-slate-100">
-                        <tr>
-                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Code</th>
-                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Subject</th>
-                            <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">
-                                Marks (Obtained / Total)
-                            </th>
-                            <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">Grade</th>
-                            <th class="p-4 text-xs font-bold text-slate-500 uppercase text-center">Status</th>
-                        </tr>
-                    </thead>
-
-                    <tbody class="divide-y divide-slate-100 text-sm">
-                        {% for res in results %}
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-4 font-mono text-slate-500 font-bold">
-                                {{ res.code }}
-                            </td>
-
-                            <td class="p-4 font-bold text-slate-800">
-                                {{ res.subject }}
-                            </td>
-
-                            <td class="p-4 text-center font-bold text-slate-700">
-                                {{ res.marks_obtained }} / {{ res.total_marks }}
-                            </td>
-
-                            <td class="p-4 text-center">
-                                <span class="inline-flex w-10 h-10 rounded-xl
-                                    {% if res.grade == 'A+' or res.grade == 'A' %}
-                                        bg-green-50 text-green-600
-                                    {% elif res.grade == 'B' %}
-                                        bg-blue-50 text-blue-600
-                                    {% elif res.grade == 'C' or res.grade == 'D' %}
-                                        bg-orange-50 text-orange-600
-                                    {% else %}
-                                        bg-red-50 text-red-600
-                                    {% endif %}
-                                    items-center justify-center font-bold text-sm">
-                                    {{ res.grade }}
-                                </span>
-                            </td>
-
-                            <td class="p-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase
-                                    {% if res.status == 'PASS' %}
-                                        bg-green-100 text-green-700
-                                    {% else %}
-                                        bg-red-100 text-red-700
-                                    {% endif %}">
-                                    {{ res.status }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="p-12 text-center">
-                                <p class="font-bold text-slate-600">No results published yet</p>
-                                <p class="text-sm text-slate-400">Results will appear once declared</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            {% endfor %}
         </div>
 
     </main>

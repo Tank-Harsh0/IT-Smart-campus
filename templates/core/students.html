@@ -5,9 +5,10 @@
 <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
     <header
         class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
-        <button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100" aria-label="Open sidebar">
-            <i class="fa-solid fa-bars text-xl"></i>
-        </button>
+            <button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100 md:hidden mr-2" aria-label="Open sidebar">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        
 
         <h2 class="text-xl font-bold font-tech text-slate-800">User Management</h2>
         <a href="{% url 'upload_students' %}"
