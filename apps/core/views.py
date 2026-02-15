@@ -1,3 +1,4 @@
+import logging
 import re
 import csv
 import io
@@ -18,6 +19,8 @@ from apps.faculty.models import Faculty
 from apps.subjects.models import Subject
 from apps.notifications.models import Notification
 from apps.core.models import Classroom, Batch, TimetableSlot
+
+logger = logging.getLogger(__name__)
 
 
 # =========================
@@ -173,16 +176,16 @@ def admin_dashboard(request):
 
 @login_required
 @user_passes_test(is_admin)
-def Upload_students(request):
+def upload_students(request):
     if request.method == "POST":
         if 'file' not in request.FILES:
             messages.error(request, "Please select a CSV file.")
-            return redirect('Upload_students')
+            return redirect('upload_students')
 
         csv_file = request.FILES['file']
         if not csv_file.name.endswith('.csv'):
             messages.error(request, "Only CSV files are allowed.")
-            return redirect('Upload_students')
+            return redirect('upload_students')
 
         try:
             decoded = csv_file.read().decode('utf-8')
@@ -234,8 +237,9 @@ def Upload_students(request):
             return redirect('admin_dashboard')
 
         except Exception as e:
+            logger.error(f"File processing error in upload_students: {e}")
             messages.error(request, f"File processing error: {e}")
-            return redirect('Upload_students')
+            return redirect('upload_students')
 
     return render(request, 'core/Upload_student.html')
 
@@ -246,13 +250,17 @@ def Upload_students(request):
 
 @login_required
 @user_passes_test(is_admin)
-def Upload_subjects(request):
+def upload_subjects(request):
     if request.method == "POST":
         if 'file' not in request.FILES:
             messages.error(request, "Please select a CSV file.")
-            return redirect('Upload_subjects')
+            return redirect('upload_subjects')
 
         csv_file = request.FILES['file']
+        if not csv_file.name.endswith('.csv'):
+            messages.error(request, "Only CSV files are allowed.")
+            return redirect('upload_subjects')
+
         try:
             decoded = csv_file.read().decode('utf-8')
             reader = csv.DictReader(io.StringIO(decoded))
@@ -264,13 +272,16 @@ def Upload_subjects(request):
                         defaults={'name': row['name'].strip(), 'semester': int(row['semester'])}
                     )
                     count += 1
-                except Exception: continue
+                except (KeyError, ValueError) as e:
+                    logger.warning(f"Skipping row in subject upload: {e}")
+                    continue
 
             messages.success(request, f"{count} subjects processed.")
             return redirect('admin_dashboard')
         except Exception as e:
+            logger.error(f"File error in upload_subjects: {e}")
             messages.error(request, f"File error: {e}")
-            return redirect('Upload_subjects')
+            return redirect('upload_subjects')
 
     return render(request, 'core/Upload_subjects.html')
 
@@ -287,7 +298,7 @@ def student_list(request):
 
 @login_required
 @user_passes_test(is_admin)
-def Faculty_list(request):
+def faculty_list(request):
     users = User.objects.filter(role=User.Role.FACULTY).order_by('first_name')
     return render(request, 'core/faculty.html', {'users': users})
 
@@ -322,55 +333,6 @@ def download_sample_subjects_csv(request):
     return response
 
 
-# =========================
-# Upload Batches (PDF)
-# =========================
-
-@login_required
-@user_passes_test(is_admin)
-def upload_timetable(request):
-    # Case 1: Form Submitted
-    if request.method == 'POST':
-        form = ManualTimetableForm(request.POST)
-        if form.is_valid():
-            try:
-                slot_type = form.cleaned_data['slot_type']
-                classroom = form.cleaned_data['classroom']
-                
-                # Determine Batch (Lecture = All, Lab = Specific)
-                if slot_type == 'LECTURE':
-                    # Auto-create the "-ALL" batch if it doesn't exist
-                    batch_name = f"{classroom.name}-ALL"
-                    batch, _ = Batch.objects.get_or_create(name=batch_name, defaults={'classroom': classroom})
-                else:
-                    batch = form.cleaned_data['specific_batch']
-
-                # Create Slot
-                TimetableSlot.objects.create(
-                    day=form.cleaned_data['day'],
-                    start_time=form.cleaned_data['start_time'],
-                    end_time=form.cleaned_data['end_time'],
-                    batch=batch,
-                    subject=form.cleaned_data['subject'],
-                    faculty=form.cleaned_data['faculty'],
-                    room_number=form.cleaned_data['room_number']
-                )
-                
-                messages.success(request, f"Successfully added {slot_type} for {batch.name}")
-                return redirect('upload_timetable')
-
-            except Exception as e:
-                messages.error(request, f"Database Error: {e}")
-        else:
-            # --- DEBUGGING: PRINT ERRORS TO TERMINAL ---
-            print("FORM ERRORS:", form.errors)
-            messages.error(request, "Please correct the errors highlighted below.")
-            
-    # Case 2: Load Empty Form
-    else:
-        form = ManualTimetableForm()
-
-    return render(request, 'core/upload_timetable.html', {'form': form})
 
 # =========================
 # Upload Timetable (PDF) - ZERO WORK MODE
@@ -493,7 +455,7 @@ def save_slot(day, start, end, match_data, is_lab, class_name, semester):
                 employee_id=dummy_username,
                 designation="Lecturer (Auto)"
             )
-            print(f"Auto-created Faculty: {clean_initial}")
+            logger.info(f"Auto-created Faculty: {clean_initial}")
 
         # 4. Create or Update Slot (NO DUPLICATES)
         # update_or_create ensures that if you re-upload, it updates instead of crashing
@@ -508,13 +470,12 @@ def save_slot(day, start, end, match_data, is_lab, class_name, semester):
                 'room_number': room
             }
         )
-        print(f"Upserted: {day} {start} | {subj_code} | {faculty_initial}")
+        logger.info(f"Upserted: {day} {start} | {subj_code} | {faculty_initial}")
 
     except Exception as e:
-        print(f"Failed to save slot: {e}")
+        logger.error(f"Failed to save slot: {e}")
 
-# Add these imports if missing
-from .models import Classroom, Batch
+
 
 @login_required
 @user_passes_test(is_admin)

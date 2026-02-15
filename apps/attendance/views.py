@@ -1,13 +1,16 @@
+import json
+import logging
 import face_recognition
 import numpy as np
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from apps.accounts.decorators import faculty_required
 from apps.subjects.models import Subject
 from apps.attendance.models import FaceData, AttendanceSession, AttendanceRecord
+
+logger = logging.getLogger(__name__)
 
 @login_required
 @faculty_required
@@ -21,7 +24,6 @@ def start_session(request, subject_id):
     )
     return render(request, 'attendance/take_attendance.html', {'session': session})
 
-@csrf_exempt
 @login_required
 @faculty_required
 def recognize_face(request, session_id):
@@ -53,7 +55,8 @@ def recognize_face(request, session_id):
                     encoding = fd.get_encoding()
                     known_encodings.append(encoding)
                     known_students.append(fd.student)
-                except:
+                except (json.JSONDecodeError, ValueError, TypeError) as e:
+                    logger.warning(f"Bad face encoding for student {fd.student}: {e}")
                     continue
 
             identified_names = []

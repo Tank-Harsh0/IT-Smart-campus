@@ -3,20 +3,18 @@
 {% block content %}
 {% include 'partials/admin_sidebar.html' %}
 <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
-    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
-        <button
-    id="menuBtn"
-    class="p-2 rounded-lg hover:bg-slate-100"
-    aria-label="Open sidebar"
-  >
-    <i class="fa-solid fa-bars text-xl"></i>
-  </button>
-        
+    <header
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
+        <button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100" aria-label="Open sidebar">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+
         <h2 class="text-xl font-bold font-tech text-slate-800">User Management</h2>
-        <a href="{% url 'Upload_students' %}" class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition">
+        <a href="{% url 'upload_students' %}"
+            class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition">
             <i class="fa-solid fa-plus mr-2"></i> Add New Users
         </a>
-        
+
     </header>
 
     <main class="flex-1 overflow-y-auto p-8 custom-scroll">
@@ -37,7 +35,8 @@
                         <td class="p-4 pl-6 font-bold text-slate-700">{{ user.username }}</td>
                         <td class="p-4 text-slate-600">{{ user.first_name }} {{ user.last_name }}</td>
                         <td class="p-4">
-                                <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase">{{ user.role }}</span>
+                            <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase">{{
+                                user.role }}</span>
                         </td>
                         <td class="p-4 text-slate-500">{{ user.email }}</td>
                         <td class="p-4">
@@ -45,7 +44,9 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" class="p-8 text-center text-slate-400">No users found.</td></tr>
+                    <tr>
+                        <td colspan="5" class="p-8 text-center text-slate-400">No users found.</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>

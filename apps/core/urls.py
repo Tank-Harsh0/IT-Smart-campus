@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import (admin_dashboard, Upload_subjects,Upload_students, download_sample_csv, 
+from .views import (admin_dashboard, upload_subjects, upload_students, download_sample_csv, 
                     subject_list, download_sample_subjects_csv, 
-                    student_list, Faculty_list, upload_batches, 
-                    upload_timetable, auto_generate_batches, load_subjects,load_classrooms,load_batches, index,
+                    student_list, faculty_list, upload_batches, 
+                    upload_timetable, auto_generate_batches, load_subjects, load_classrooms, load_batches, index,
                     faculty_public, curriculum, gallery)
 
 urlpatterns = [
@@ -15,10 +15,10 @@ urlpatterns = [
     path('about-gallery/', gallery, name='gallery'),
     
     path('students/', student_list, name='student_list'),
-    path('faculty/', Faculty_list, name='Faculty_list'),
+    path('faculty/', faculty_list, name='faculty_list'),
     path('subjects/', subject_list, name='subject_list'),
-    path('upload/students/', Upload_students, name='Upload_students'),
-    path('upload/subject/', Upload_subjects, name='Upload_subjects'),
+    path('upload/students/', upload_students, name='upload_students'),
+    path('upload/subject/', upload_subjects, name='upload_subjects'),
     path('upload/sample-csv/', download_sample_csv, name='download_sample_csv'),
     path('upload/sample-subjects-csv/', download_sample_subjects_csv, name='download_sample_subjects_csv'),
     path('upload/batches/', upload_batches, name='upload_batches'),
