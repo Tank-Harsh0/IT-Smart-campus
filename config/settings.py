@@ -2,7 +2,6 @@ import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -84,12 +83,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # --- DATABASE CONFIGURATION ---
-# Use DATABASE_URL (Render provides this for PostgreSQL) if available,
-# otherwise fall back to local MySQL for development.
-DATABASE_URL = os.getenv('DATABASE_URL')
-if DATABASE_URL:
+# On Render: use SQLite (free, no external DB needed)
+# Locally: use MySQL for development
+if os.getenv('RENDER'):
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL)
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
 else:
     DATABASES = {
