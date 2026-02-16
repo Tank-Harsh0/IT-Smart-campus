@@ -33,7 +33,6 @@ Include/
 # =========================
 tzdata*
 urllib3*
-whitenoise*
 _distutils_hack/
 _cffi_backend*
 _dlib_pybind11*
