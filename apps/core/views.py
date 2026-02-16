@@ -8,8 +8,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db import transaction
-from .forms import ManualTimetableForm, ManualBatchForm
+from .forms import ManualBatchForm
 from .utils import send_welcome_email
+from .timetable_parser import parse_timetable_pdf
 from apps.accounts.models import User
 from apps.students.models import Student
 from apps.faculty.models import Faculty
@@ -278,58 +279,136 @@ def download_sample_subjects_csv(request):
 
 
 # =========================
-# Upload Timetable (PDF) - ZERO WORK MODE
+# Upload Timetable (PDF)
 # =========================
 
 @login_required
 @user_passes_test(is_admin)
 def upload_timetable(request):
+    results = None
+
     if request.method == 'POST':
-        form = ManualTimetableForm(request.POST)
-        
-        if form.is_valid():
-            try:
-                # Extract clean data
-                slot_type = form.cleaned_data['slot_type']
-                classroom = form.cleaned_data['classroom']
-                day = form.cleaned_data['day']
-                start = form.cleaned_data['start_time']
-                end = form.cleaned_data['end_time']
-                subject = form.cleaned_data['subject']
-                faculty = form.cleaned_data['faculty']
-                room = form.cleaned_data['room_number']
+        if 'file' not in request.FILES:
+            messages.error(request, "Please select a PDF file.")
+            return redirect('upload_timetable')
 
-                # 1. Double Booking Check
-                if TimetableSlot.objects.filter(day=day, start_time=start, faculty=faculty).exists():
-                    messages.error(request, f"Error: {faculty} is already teaching at {start} on {day}!")
-                    return render(request, 'core/upload_timetable.html', {'form': form})
+        pdf_file = request.FILES['file']
+        if not pdf_file.name.lower().endswith('.pdf'):
+            messages.error(request, "Only PDF files are allowed.")
+            return redirect('upload_timetable')
 
-                # 2. Determine Batch
-                if slot_type == 'LECTURE':
-                    # Auto-create class batch (e.g. "IT6-ALL")
-                    batch_name = f"{classroom.name}-ALL"
-                    batch, _ = Batch.objects.get_or_create(name=batch_name, defaults={'classroom': classroom})
-                else:
-                    batch = form.cleaned_data['specific_batch']
+        clear_existing = request.POST.get('clear_existing') == 'on'
 
-                # 3. Save Slot
-                TimetableSlot.objects.create(
-                    day=day, start_time=start, end_time=end,
-                    batch=batch, subject=subject, faculty=faculty, room_number=room
-                )
+        try:
+            # 1. Parse PDF
+            slots_data, parse_warnings = parse_timetable_pdf(pdf_file)
 
-                messages.success(request, f"Successfully added {slot_type} for {batch.name}")
+            if not slots_data:
+                messages.error(request, "No timetable data could be extracted from this PDF.")
+                for w in parse_warnings:
+                    messages.warning(request, w)
                 return redirect('upload_timetable')
 
-            except Exception as e:
-                messages.error(request, f"Database Error: {e}")
-        else:
-            # If form is invalid, errors will show in the template automatically
-            messages.error(request, "Please fix the errors highlighted below.")
-    else:
-        form = ManualTimetableForm()
+            # 2. Clear old data if requested
+            if clear_existing:
+                deleted_count = TimetableSlot.objects.all().delete()[0]
+                logger.info(f"Cleared {deleted_count} existing timetable slots")
 
-    return render(request, 'core/upload_timetable.html', {'form': form})
+            # 3. Process each parsed slot
+            created_count = 0
+            updated_count = 0
+            skipped = []
+
+            for slot in slots_data:
+                try:
+                    with transaction.atomic():
+                        # a. Classroom (get or create)
+                        classroom, _ = Classroom.objects.get_or_create(
+                            name=slot['class_name'],
+                            defaults={'semester': slot['semester']}
+                        )
+
+                        # b. Batch — Labs get specific batch (IT121), Lectures get CLASSNAME-ALL
+                        if slot.get('is_lab') and slot.get('batch_code'):
+                            batch_name = slot['batch_code']
+                        else:
+                            batch_name = f"{slot['class_name']}-ALL"
+                        batch, _ = Batch.objects.get_or_create(
+                            name=batch_name,
+                            defaults={'classroom': classroom}
+                        )
+
+                        # c. Subject (match by code prefix)
+                        subject = Subject.objects.filter(
+                            code__icontains=slot['subject_code'],
+                            semester=slot['semester']
+                        ).first()
+
+                        if not subject:
+                            # Auto-create subject as placeholder
+                            subject, _ = Subject.objects.get_or_create(
+                                code=slot['subject_code'],
+                                defaults={
+                                    'name': slot['subject_code'],
+                                    'semester': slot['semester']
+                                }
+                            )
+
+                        # d. Faculty (match by initials)
+                        faculty = Faculty.objects.filter(
+                            initials__iexact=slot['initials']
+                        ).first()
+
+                        if not faculty:
+                            skipped.append(
+                                f"{slot['day']} {slot['start_time']}: Faculty '{slot['initials']}' not found — skipped"
+                            )
+                            continue
+
+                        # e. Create or update TimetableSlot
+                        _, was_created = TimetableSlot.objects.update_or_create(
+                            day=slot['day'],
+                            start_time=slot['start_time'],
+                            faculty=faculty,
+                            defaults={
+                                'end_time': slot['end_time'],
+                                'batch': batch,
+                                'subject': subject,
+                                'room_number': slot['room'],
+                            }
+                        )
+
+                        if was_created:
+                            created_count += 1
+                        else:
+                            updated_count += 1
+
+                except Exception as e:
+                    skipped.append(f"{slot['day']} {slot['start_time']}: {e}")
+
+            # 4. Build results
+            results = {
+                'created': created_count,
+                'updated': updated_count,
+                'skipped': skipped,
+                'warnings': parse_warnings,
+                'total_parsed': len(slots_data),
+            }
+
+            if created_count or updated_count:
+                messages.success(
+                    request,
+                    f"Timetable imported! {created_count} created, {updated_count} updated."
+                )
+            if skipped:
+                messages.warning(request, f"{len(skipped)} entries skipped (see details below).")
+
+        except Exception as e:
+            logger.error(f"Timetable upload error: {e}")
+            messages.error(request, f"Error processing PDF: {e}")
+            return redirect('upload_timetable')
+
+    return render(request, 'core/upload_timetable.html', {'results': results})
 
 
 # ... keep upload_batches ...

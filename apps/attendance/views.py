@@ -2,22 +2,57 @@ import json
 import logging
 import face_recognition
 import numpy as np
+from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.utils import timezone
 from django.core.cache import cache
 from apps.accounts.decorators import faculty_required
 from apps.subjects.models import Subject
 from apps.students.models import Student
+from apps.core.models import TimetableSlot
 from apps.attendance.models import FaceData, AttendanceSession, AttendanceRecord
 
 logger = logging.getLogger(__name__)
+
+# Day mapping: Python weekday (0=Mon) → our model's day code
+WEEKDAY_MAP = {0: 'MON', 1: 'TUE', 2: 'WED', 3: 'THU', 4: 'FRI', 5: 'SAT'}
+BUFFER_MINUTES = 10  # Allow ±10 min flexibility
 
 @login_required
 @faculty_required
 def start_session(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
+    faculty = request.user.faculty_profile
+
+    # --- Time Validation: Only allow during scheduled hours ---
+    now = timezone.localtime()
+    current_day = WEEKDAY_MAP.get(now.weekday())
+    current_time = now.time()
+
+    # Find matching timetable slot for this faculty + subject + current day
+    # with ±10 min buffer on start/end times
+    buffer = timedelta(minutes=BUFFER_MINUTES)
+    buffered_start = (now - buffer).time()
+    buffered_end = (now + buffer).time()
+
+    matching_slot = TimetableSlot.objects.filter(
+        faculty=faculty,
+        subject=subject,
+        day=current_day,
+        start_time__lte=buffered_end,   # class starts before current time + buffer
+        end_time__gte=buffered_start,   # class ends after current time - buffer
+    ).first()
+
+    if not matching_slot:
+        messages.error(
+            request,
+            f"❌ No class scheduled for \"{subject.name}\" right now. "
+            f"Attendance can only be taken during scheduled hours (±{BUFFER_MINUTES} min)."
+        )
+        return redirect('faculty_attendance')
     
     # Create a new active session for today
     session = AttendanceSession.objects.create(
