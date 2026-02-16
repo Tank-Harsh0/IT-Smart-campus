@@ -1,30 +1,29 @@
-# Deploy requirements for PythonAnywhere (excludes dlib/face_recognition/opencv)
-# These packages require C++ compilation and are not available on PA free tier
-# Face recognition features will be gracefully disabled
+# Deploy requirements for PythonAnywhere
+# Uses flexible versions compatible with PA's Python 3.10
 
-asgiref==3.11.0
-certifi==2026.1.4
-charset-normalizer==3.4.4
-click==8.3.1
-colorama==0.4.6
+asgiref
+certifi
+charset-normalizer
+click
+colorama
 Django==5.1.15
-django-cors-headers==4.9.0
-djangorestframework==3.16.1
-gunicorn==24.1.1
-idna==3.11
-mysqlclient==2.2.7
-numpy==2.4.2
-pandas==3.0.0
-pdfminer.six==20251230
-pdfplumber==0.11.9
-pillow==12.1.0
-pypdfium2==5.3.0
-python-dateutil==2.9.0.post0
-python-dotenv==1.2.1
-reportlab==4.4.9
-requests==2.32.5
-six==1.17.0
-sqlparse==0.5.5
-tzdata==2025.3
-urllib3==2.6.3
-whitenoise==6.11.0
+django-cors-headers
+djangorestframework
+gunicorn
+idna
+mysqlclient
+numpy>=1.24,<2.0
+pandas
+pdfminer.six
+pdfplumber
+pillow
+pypdfium2
+python-dateutil
+python-dotenv
+reportlab
+requests
+six
+sqlparse
+tzdata
+urllib3
+whitenoise
