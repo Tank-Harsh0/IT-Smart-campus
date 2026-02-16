@@ -6,8 +6,10 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.core.cache import cache
 from apps.accounts.decorators import faculty_required
 from apps.subjects.models import Subject
+from apps.students.models import Student
 from apps.attendance.models import FaceData, AttendanceSession, AttendanceRecord
 
 logger = logging.getLogger(__name__)
@@ -22,6 +24,32 @@ def start_session(request, subject_id):
         subject=subject,
         status=True
     )
+
+    # Pre-load and cache face encodings for this session's semester
+    semester = subject.semester
+    cache_key = f"face_enc_{session.id}"
+
+    semester_students = Student.objects.filter(semester=semester).values_list('id', flat=True)
+    known_faces_qs = FaceData.objects.filter(
+        student_id__in=semester_students
+    ).exclude(encoding_json__isnull=True).select_related('student__user')
+
+    cached_data = []
+    for fd in known_faces_qs:
+        try:
+            encoding = fd.get_encoding()
+            cached_data.append({
+                'encoding': encoding.tolist(),
+                'student_id': fd.student_id,
+                'name': fd.student.user.first_name,
+            })
+        except (json.JSONDecodeError, ValueError, TypeError) as e:
+            logger.warning(f"Bad face encoding for student {fd.student}: {e}")
+            continue
+
+    # Cache for 2 hours (session lifetime)
+    cache.set(cache_key, cached_data, timeout=7200)
+
     return render(request, 'attendance/take_attendance.html', {'session': session})
 
 @login_required
@@ -31,7 +59,7 @@ def recognize_face(request, session_id):
         try:
             session = get_object_or_404(AttendanceSession, id=session_id)
             
-            # 1. Get Image from Webcam (sent as form data)
+            # 1. Get Image from Webcam
             image_file = request.FILES.get('image')
             if not image_file:
                 return JsonResponse({'status': 'error', 'message': 'No image data'})
@@ -43,37 +71,51 @@ def recognize_face(request, session_id):
             if not unknown_encodings:
                 return JsonResponse({'status': 'failed', 'message': 'No face detected'})
 
-            # 3. Load "Known" Faces from DB
-            # (Optimization: In a real giant app, you'd cache this in Redis)
-            known_faces_qs = FaceData.objects.exclude(encoding_json__isnull=True)
-            known_encodings = []
-            known_students = []
+            # 3. Load "Known" Faces from CACHE (not DB)
+            cache_key = f"face_enc_{session_id}"
+            cached_data = cache.get(cache_key)
 
-            for fd in known_faces_qs:
-                try:
-                    # Convert stored JSON list back to Numpy Array
-                    encoding = fd.get_encoding()
-                    known_encodings.append(encoding)
-                    known_students.append(fd.student)
-                except (json.JSONDecodeError, ValueError, TypeError) as e:
-                    logger.warning(f"Bad face encoding for student {fd.student}: {e}")
-                    continue
+            if cached_data is None:
+                # Fallback: rebuild cache if expired
+                semester = session.subject.semester
+                semester_students = Student.objects.filter(semester=semester).values_list('id', flat=True)
+                known_faces_qs = FaceData.objects.filter(
+                    student_id__in=semester_students
+                ).exclude(encoding_json__isnull=True).select_related('student__user')
+
+                cached_data = []
+                for fd in known_faces_qs:
+                    try:
+                        encoding = fd.get_encoding()
+                        cached_data.append({
+                            'encoding': encoding.tolist(),
+                            'student_id': fd.student_id,
+                            'name': fd.student.user.first_name,
+                        })
+                    except (json.JSONDecodeError, ValueError, TypeError) as e:
+                        logger.warning(f"Bad face encoding for student {fd.student}: {e}")
+                        continue
+                cache.set(cache_key, cached_data, timeout=7200)
+
+            known_encodings = [np.array(d['encoding']) for d in cached_data]
+            known_student_ids = [d['student_id'] for d in cached_data]
+            known_names = [d['name'] for d in cached_data]
 
             identified_names = []
 
             # 4. Compare Faces
             for unknown_encoding in unknown_encodings:
-                # Tolerance: Lower is stricter (0.6 is default, 0.5 is safer)
                 matches = face_recognition.compare_faces(known_encodings, unknown_encoding, tolerance=0.5)
                 
                 if True in matches:
                     first_match_index = matches.index(True)
-                    student = known_students[first_match_index]
+                    student_id = known_student_ids[first_match_index]
+                    name = known_names[first_match_index]
                     
-                    # 5. Mark Attendance (Prevent duplicates for this session)
+                    # 5. Mark Attendance (Prevent duplicates)
                     record, created = AttendanceRecord.objects.get_or_create(
                         session=session,
-                        student=student,
+                        student_id=student_id,
                         defaults={
                             'is_present': True,
                             'method': 'FACE'
@@ -81,9 +123,9 @@ def recognize_face(request, session_id):
                     )
                     
                     if created:
-                        identified_names.append(f"{student.user.first_name} (Marked Present)")
+                        identified_names.append(f"{name} (Marked Present)")
                     else:
-                        identified_names.append(f"{student.user.first_name} (Already Marked)")
+                        identified_names.append(f"{name} (Already Marked)")
 
             return JsonResponse({'status': 'success', 'identified': identified_names})
 

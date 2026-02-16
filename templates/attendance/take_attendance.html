@@ -112,59 +112,85 @@
     const statusLabel = document.getElementById('statusParams');
     const presentCountEl = document.getElementById('present-count');
 
-    let presentSet = new Set(); // To count unique students locally
+    let presentSet = new Set();
+    let isBusy = false; // Prevent overlapping requests
 
-    // 1. Start Camera
+    // 1. Start Camera — constrained to 640x480 for performance
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+        navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+        }).then(stream => {
             video.srcObject = stream;
             video.play();
-            startScanning();
+            // Wait for video to be ready before starting
+            video.addEventListener('loadeddata', () => { scanLoop(); });
+        }).catch(err => {
+            statusLabel.textContent = "Camera Error";
+            statusLabel.className = "bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-lg";
+            console.error('Camera error:', err);
         });
     }
 
-    function startScanning() {
-        setInterval(() => { captureAndSend(); }, 4000); // 4 Seconds
+    // Sequential loop — waits for response before sending next frame
+    async function scanLoop() {
+        while (true) {
+            if (!isBusy) {
+                await captureAndSend();
+            }
+            await new Promise(r => setTimeout(r, 3000)); // 3s between captures
+        }
     }
 
-    function captureAndSend() {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+    async function captureAndSend() {
+        isBusy = true;
+
+        // Downscale to 320px wide — face_recognition doesn't need HD
+        const SEND_WIDTH = 320;
+        const scale = SEND_WIDTH / video.videoWidth;
+        canvas.width = SEND_WIDTH;
+        canvas.height = Math.round(video.videoHeight * scale);
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        canvas.toBlob(blob => {
+        try {
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.6));
+            if (!blob) { isBusy = false; return; }
+
             const formData = new FormData();
             formData.append('image', blob, 'capture.jpg');
 
             statusLabel.textContent = "Processing...";
             statusLabel.className = "bg-yellow-100 text-yellow-700 text-xs font-bold px-3 py-1 rounded-lg";
 
-            fetch("{% url 'recognize_face' session.id %}", {
+            const res = await fetch("{% url 'recognize_face' session.id %}", {
                 method: 'POST',
                 body: formData,
                 headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success' && data.identified.length > 0) {
-                        statusLabel.textContent = "Face Detected!";
-                        statusLabel.className = "bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-lg";
+            });
+            const data = await res.json();
 
-                        data.identified.forEach(name => {
-                            // Extract Name cleanly if it comes as "Name (Status)"
-                            let cleanName = name.split('(')[0].trim();
-                            if (!presentSet.has(cleanName)) {
-                                presentSet.add(cleanName);
-                                presentCountEl.textContent = presentSet.size;
-                                addLogEntry(cleanName);
-                            }
-                        });
-                    } else {
-                        statusLabel.textContent = "Scanning...";
-                        statusLabel.className = "bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-lg animate-pulse";
+            if (data.status === 'success' && data.identified.length > 0) {
+                statusLabel.textContent = "Face Detected!";
+                statusLabel.className = "bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-lg";
+
+                data.identified.forEach(name => {
+                    let cleanName = name.split('(')[0].trim();
+                    if (!presentSet.has(cleanName)) {
+                        presentSet.add(cleanName);
+                        presentCountEl.textContent = presentSet.size;
+                        addLogEntry(cleanName);
                     }
                 });
-        }, 'image/jpeg');
+            } else {
+                statusLabel.textContent = "Scanning...";
+                statusLabel.className = "bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-lg animate-pulse";
+            }
+        } catch (err) {
+            console.error('Recognition error:', err);
+            statusLabel.textContent = "Retrying...";
+            statusLabel.className = "bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-lg";
+        } finally {
+            isBusy = false;
+        }
     }
 
     function addLogEntry(name) {
@@ -193,7 +219,7 @@
 <style>
     @keyframes scan {
         0% {
-            top: 0;
+            transform: translateY(0);
             opacity: 0;
         }
 
@@ -206,7 +232,7 @@
         }
 
         100% {
-            top: 100%;
+            transform: translateY(calc(100vh - 100%));
             opacity: 0;
         }
     }

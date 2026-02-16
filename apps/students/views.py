@@ -10,7 +10,6 @@ from apps.notifications.models import Notification
 from apps.core.models import TimetableSlot 
 from apps.students.forms import FaceRegistrationForm
 from apps.attendance.models import FaceData, AttendanceRecord, AttendanceSession
-from apps.students.models import Result
 import face_recognition
 
 # ==========================================

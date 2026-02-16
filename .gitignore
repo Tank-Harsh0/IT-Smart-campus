@@ -11,13 +11,11 @@ __pycache__/
 # Django static & media
 media/
 staticfiles/
-csvs
 
 # =========================
 # Virtual Environment (CRITICAL)
 # =========================
 env/
-venv/
 pyvenv.cfg
 Scripts/
 Lib/
@@ -44,7 +42,6 @@ _dlib_pybind11*
 # Environment & secrets
 # =========================
 .env
-.env.*
 *.pem
 *.key
 
