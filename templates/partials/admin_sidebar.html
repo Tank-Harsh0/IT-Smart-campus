@@ -40,7 +40,12 @@
     <a href="{% url 'send_notification' %}" class="nav-item flex items-center px-6 py-3">
       <i class="fa-solid fa-bullhorn w-5 mr-3"></i>
       <span class="font-medium text-sm">Broadcast</span>
-    </a><a href="{% url 'upload_batches' %}" class="nav-item flex items-center px-6 py-3">
+    </a>
+    <a href="{% url 'admin_leave_requests' %}" class="nav-item flex items-center px-6 py-3">
+      <i class="fa-solid fa-calendar-xmark w-5 mr-3"></i>
+      <span class="font-medium text-sm">Leave Requests</span>
+    </a>
+    <a href="{% url 'upload_batches' %}" class="nav-item flex items-center px-6 py-3">
       <i class="fa-solid fa-users-rectangle w-5 mr-3"></i> <span class="font-medium text-sm">Batch Allocation</span>
     </a>
     <a href="{% url 'upload_timetable' %}" class="nav-item flex items-center px-6 py-3">

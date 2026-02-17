@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load tz %}
+
+{% block title %}Absent Faculty — RCTI{% endblock %}
+
+{% block content %}
+{% include 'partials/student_sidebar.html' %}
+
+<main class="flex-1 overflow-y-auto custom-scroll">
+    <header
+        class="h-20 flex items-center justify-between px-8 border-b border-slate-200 bg-white/80 backdrop-blur sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+            <button id="menuBtn" class="md:hidden text-slate-600"><i class="fa-solid fa-bars text-xl"></i></button>
+            <h2 class="text-xl font-bold font-tech text-slate-800">Absent Faculty</h2>
+            <span class="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full">{{ today|date:"l, d M Y" }}</span>
+        </div>
+    </header>
+
+    <div class="p-8">
+        {% if has_absent %}
+        <!-- Alert Banner -->
+        <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
+            <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm"></i>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-amber-800">
+                    {{ absent_faculty_info|length }} faculty member{{ absent_faculty_info|length|pluralize }} absent
+                    today
+                </p>
+                <p class="text-xs text-amber-600 mt-0.5">Some of your classes may be affected. Check below for details.
+                </p>
+            </div>
+        </div>
+
+        <!-- Absent Faculty Cards -->
+        <div class="space-y-4">
+            {% for info in absent_faculty_info %}
+            <div class="dash-card p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div
+                        class="w-11 h-11 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-sm">
+                        {{ info.faculty.user.first_name|slice:":1" }}{{ info.faculty.user.last_name|slice:":1" }}
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-800">{{ info.faculty.user.get_full_name }}</p>
+                        <p class="text-xs text-slate-500">{{ info.faculty.designation }}</p>
+                    </div>
+                    <div class="ml-auto">
+                        <span
+                            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                            <i class="fa-solid fa-circle-xmark"></i> Absent
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Leave Info -->
+                <div class="bg-slate-50 rounded-xl p-3 mb-4">
+                    <div class="flex items-center gap-2 text-sm text-slate-600">
+                        <i class="fa-regular fa-calendar text-slate-400"></i>
+                        <span>Leave: {{ info.leave.start_date|date:"d M" }} — {{ info.leave.end_date|date:"d M Y" }}</span>
+                        <span class="text-xs text-slate-400">({{ info.leave.duration_days    }} 
+                        day{{ info.leave.duration_days|pluralize }})</span>
+                    </div>
+                </div>
+
+                <!-- Affected Classes -->
+                {% if info.affected_slots %}
+                <div>
+                    <p class="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">
+                        <i class="fa-solid fa-ban mr-1"></i>Cancelled Classes
+                    </p>
+                    <div class="space-y-2">
+                        {% for slot in info.affected_slots %}
+                        <div class="flex items-center gap-3 p-3 bg-red-50 border border-red-100 rounded-xl">
+                            <div class="flex-shrink-0 text-center">
+                                <p class="text-xs font-bold text-red-600">{{ slot.start_time|time:"h:i A" }}</p>
+                                <p class="text-[10px] text-red-400">to {{ slot.end_time|time:"h:i A" }}</p>
+                            </div>
+                            <div class="h-8 w-px bg-red-200"></div>
+                            <div>
+                                <p class="text-sm font-semibold text-red-800">{{ slot.subject.name }}</p>
+                                <p class="text-xs text-red-500">{{ slot.subject.code }} • Room {{ slot.room_number }} •
+                                    {{ slot.batch.name }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-xs text-slate-400 italic">No classes of yours are affected today.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Still Active Classes -->
+        {% if active_slots %}
+        <div class="mt-8">
+            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">
+                <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5"></i>Active Classes Today
+            </h3>
+            <div class="dash-card divide-y divide-slate-100">
+                {% for slot in active_slots %}
+                <div class="flex items-center gap-3 p-4">
+                    <div class="flex-shrink-0 text-center min-w-[60px]">
+                        <p class="text-xs font-bold text-emerald-600">{{ slot.start_time|time:"h:i A" }}</p>
+                        <p class="text-[10px] text-slate-400">{{ slot.end_time|time:"h:i A" }}</p>
+                    </div>
+                    <div class="h-8 w-px bg-slate-200"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-800">{{ slot.subject.name }}</p>
+                        <p class="text-xs text-slate-500">{{ slot.faculty.user.get_full_name }} • Room {{
+                            slot.room_number }}</p>
+                    </div>
+                    <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold">ON</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- No Absences -->
+        <div class="text-center py-16">
+            <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-circle-check text-3xl text-emerald-400"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-700 mb-1">All Faculty Present</h3>
+            <p class="text-sm text-slate-500">No faculty is on leave today. All classes are on schedule! 🎉</p>
+        </div>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}

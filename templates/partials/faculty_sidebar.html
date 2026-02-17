@@ -37,6 +37,11 @@
             <i class="fa-solid fa-file-upload w-6"></i> <span class="font-medium text-sm ml-3">Assignments</span>
         </a>
 
+        <a href="{% url 'faculty_leave_history' %}"
+            class="nav-item flex items-center px-6 py-3 {% if request.resolver_match.url_name == 'faculty_leave_history' or request.resolver_match.url_name == 'faculty_leave_apply' %}active{% endif %}">
+            <i class="fa-solid fa-calendar-xmark w-6"></i> <span class="font-medium text-sm ml-3">My Leaves</span>
+        </a>
+
         <a href="{% url 'faculty_exam_list' %}"
             class="nav-item flex items-center px-6 py-3 {% if request.resolver_match.url_name == 'faculty_exam_list' or request.resolver_match.url_name == 'faculty_grade_exam' %}active{% endif %}">
             <i class="fa-solid fa-file-signature w-6"></i> <span class="font-medium text-sm ml-3">Exams</span>

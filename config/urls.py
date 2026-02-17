@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 # Smart Redirect View for Root URL
 def root_redirect_view(request):
     if not request.user.is_authenticated:
-        return redirect('login')
+        return redirect('index')
     
     # Role-based dispatch
     if request.user.is_admin:
@@ -29,8 +29,7 @@ urlpatterns = [
     path('attendance/', include('apps.attendance.urls')),
     path('exams/', include('apps.exams.urls')),
     path('notifications/', include('apps.notifications.urls')),
-
-
+    path('leave/', include('apps.leave.urls')),
 
     # Base
     path('', root_redirect_view, name='home'),

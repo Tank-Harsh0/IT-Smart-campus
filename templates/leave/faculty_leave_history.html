@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Leave History — RCTI{% endblock %}
+
+{% block content %}
+{% include 'partials/faculty_sidebar.html' %}
+
+<main class="flex-1 overflow-y-auto custom-scroll">
+    <header
+        class="h-20 flex items-center justify-between px-8 border-b border-slate-200 bg-white/80 backdrop-blur sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+            <button id="menuBtn" class="md:hidden text-slate-600"><i class="fa-solid fa-bars text-xl"></i></button>
+            <h2 class="text-xl font-bold font-tech text-slate-800">My Leave History</h2>
+        </div>
+        <a href="{% url 'faculty_leave_apply' %}"
+            class="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+            <i class="fa-solid fa-plus mr-1.5"></i>New Request
+        </a>
+    </header>
+
+    <div class="p-8">
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-xl text-sm font-medium
+                {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                {% elif message.tags == 'warning' %}bg-amber-50 text-amber-700 border border-amber-200
+                {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if leaves %}
+        <div class="space-y-4">
+            {% for leave in leaves %}
+            <div class="dash-card p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+                <!-- Status Badge -->
+                <div class="flex-shrink-0">
+                    {% if leave.status == 'APPROVED' %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+                        <i class="fa-solid fa-circle-check"></i> Approved
+                    </span>
+                    {% elif leave.status == 'REJECTED' %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                        <i class="fa-solid fa-circle-xmark"></i> Rejected
+                    </span>
+                    {% else %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                        <i class="fa-solid fa-clock"></i> Pending
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i class="fa-regular fa-calendar text-slate-400 text-sm"></i>
+                        <span class="text-sm font-semibold text-slate-800">
+                            {{ leave.start_date|date:"d M Y" }} — {{ leave.end_date|date:"d M Y" }}
+                        </span>
+                        <span class="text-xs text-slate-400">({{ leave.duration_days }} day{{ leave.duration_days|pluralize }})</span>
+                    </div>
+                    <p class="text-sm text-slate-600 truncate">{{ leave.reason }}</p>
+                    {% if leave.review_remarks %}
+                    <p class="text-xs text-slate-500 mt-1">
+                        <i class="fa-solid fa-comment-dots mr-1"></i>{{ leave.review_remarks }}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- Date Applied -->
+                <div class="text-right flex-shrink-0">
+                    <p class="text-xs text-slate-400">Applied</p>
+                    <p class="text-sm text-slate-600 font-medium">{{ leave.created_at|date:"d M Y" }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-regular fa-calendar-xmark text-2xl text-slate-400"></i>
+            </div>
+            <p class="text-slate-500 font-medium">No leave requests yet</p>
+            <a href="{% url 'faculty_leave_apply' %}"
+                class="text-blue-600 text-sm font-semibold mt-2 inline-block hover:underline">Apply for leave →</a>
+        </div>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}
