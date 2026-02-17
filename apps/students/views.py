@@ -10,11 +10,7 @@ from apps.notifications.models import Notification
 from apps.core.models import TimetableSlot 
 from apps.students.forms import FaceRegistrationForm
 from apps.attendance.models import FaceData, AttendanceRecord, AttendanceSession
-try:
-    import face_recognition
-    FACE_RECOGNITION_AVAILABLE = True
-except ImportError:
-    FACE_RECOGNITION_AVAILABLE = False
+import face_recognition
 
 # ==========================================
 # 1. ATTENDANCE STATS

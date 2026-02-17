@@ -50,6 +50,12 @@
             <span class="font-medium text-sm">Assignments</span>
         </a>
 
+        <a href="{% url 'discussion_list' %}"
+            class="nav-item flex items-center px-6 py-3 {% if request.resolver_match.url_name == 'discussion_list' or request.resolver_match.url_name == 'discussion_detail' %}active{% endif %}">
+            <i class="fa-solid fa-comments w-5 mr-3"></i>
+            <span class="font-medium text-sm">Forum</span>
+        </a>
+
         <a href="{% url 'student_results' %}"
             class="nav-item flex items-center px-6 py-3 {% if request.resolver_match.url_name == 'student_results' %}active{% endif %}">
             <i class="fa-solid fa-chart-simple w-5 mr-3"></i>

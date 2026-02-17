@@ -1,11 +1,6 @@
 import json
 import logging
-try:
-    import face_recognition
-    FACE_RECOGNITION_AVAILABLE = True
-except ImportError:
-    face_recognition = None
-    FACE_RECOGNITION_AVAILABLE = False
+import face_recognition
 import numpy as np
 from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect

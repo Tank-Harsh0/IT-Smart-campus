@@ -30,6 +30,7 @@ urlpatterns = [
     path('exams/', include('apps.exams.urls')),
     path('notifications/', include('apps.notifications.urls')),
     path('leave/', include('apps.leave.urls')),
+    path('discussion/', include('apps.discussion.urls')),
 
     # Base
     path('', root_redirect_view, name='home'),
