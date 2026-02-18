@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'apps.fees',
     'apps.leave',
     'apps.discussion',
+    'apps.ml',
 ]
 
 MIDDLEWARE = [

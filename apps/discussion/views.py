@@ -45,11 +45,21 @@ def discussion_create(request):
 
         subject = get_object_or_404(Subject, id=subject_id)
 
+        # Auto-tag using ML model
+        tag = 'Question'  # default
+        try:
+            from apps.ml.predictor import classify_text
+            result = classify_text(title, body)
+            tag = result.get('tag', 'Question')
+        except Exception:
+            pass
+
         Discussion.objects.create(
             title=title,
             body=body,
             subject=subject,
             author=request.user,
+            tag=tag,
         )
         messages.success(request, "Discussion created!")
         return redirect('discussion_list')
