@@ -1,24 +1,37 @@
 import os
 import sys
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables from .env file
 load_dotenv(BASE_DIR / '.env')
 
-# Add 'apps' to system path so we can import apps easily
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 
-# SECURITY: Must be set in .env — no fallback for safety
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-only-key')
 
-# SECURITY: Set to False in production
-DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
+def env_bool(name, default=False):
+    return os.getenv(name, str(default)).strip().lower() in ('true', '1', 'yes', 'on')
 
-# SECURITY: Configure allowed hosts properly in production
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+def env_list(name, default=''):
+    raw = os.getenv(name, default)
+    return [item.strip() for item in raw.split(',') if item.strip()]
+
+
+DEBUG = env_bool('DEBUG', True)
+
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-dev-only-key'
+    else:
+        raise ImproperlyConfigured('SECRET_KEY must be set when DEBUG is False.')
+
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS', '')
 
 # Application definition
 INSTALLED_APPS = [
@@ -82,7 +95,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# --- DATABASE CONFIGURATION (MySQL) ---
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -94,27 +107,28 @@ DATABASES = {
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
+            'connect_timeout': int(os.getenv('DB_CONNECT_TIMEOUT', '10')),
         },
+        'CONN_MAX_AGE': int(os.getenv('DB_CONN_MAX_AGE', '60')),
+        'CONN_HEALTH_CHECKS': True,
     }
 }
 
-# --- AUTHENTICATION ---
-AUTH_USER_MODEL = 'accounts.User'  # CRITICAL: Set this before first migration
+AUTH_USER_MODEL = 'accounts.User'
 
-# --- PASSWORDS ---
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    # Add complexity validators for production
 ]
 
-# --- INTERNATIONALIZATION ---
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-# --- STATIC & MEDIA ---
+
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
@@ -122,34 +136,57 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# --- ID FIELD ---
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'smart-campus-cache',
+    }
+}
+
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- EMAIL CONFIGURATION ---
-# Use Console backend for development (emails print to terminal)
-# Use SMTP backend for production (emails sent via Gmail)
-# Set FORCE_SMTP_EMAIL=True in env to test real emails in development
 
-if DEBUG and not os.getenv('FORCE_SMTP_EMAIL', False):
+SESSION_COOKIE_AGE = int(os.getenv('SESSION_COOKIE_AGE', '43200'))  # 12 hours
+SESSION_SAVE_EVERY_REQUEST = env_bool('SESSION_SAVE_EVERY_REQUEST', True)
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', True)
+    SECURE_HSTS_PRELOAD = env_bool('SECURE_HSTS_PRELOAD', True)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+else:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+
+
+if DEBUG and not env_bool('FORCE_SMTP_EMAIL', False):
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-# Gmail SMTP Settings
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_TIMEOUT = 10
-
-# Default sender (use actual email, not placeholder)
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'RCTI IT Department <{EMAIL_HOST_USER}>')
-
-# Site URL for email links
 SITE_URL = os.getenv('SITE_URL', 'http://127.0.0.1:8000')
 
-# --- LOGGING ---
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -180,5 +217,17 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+    },
+}
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': os.getenv('API_THROTTLE_ANON', '60/min'),
+        'user': os.getenv('API_THROTTLE_USER', '300/min'),
     },
 }

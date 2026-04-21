@@ -19,7 +19,6 @@
             <i class="fa-solid fa-house w-5 mr-3"></i>
             <span class="font-medium text-sm">Dashboard</span>
         </a>
-        </a>
         <a href="{% url 'student_notifications' %}"
             class="nav-item flex items-center px-6 py-3 {% if request.resolver_match.url_name == 'student_notifications' %}active{% endif %}">
             <i class="fa-regular fa-bell w-5 mr-3"></i>
@@ -67,6 +66,7 @@
             <i class="fa-solid fa-user-shield w-5 mr-3"></i>
             <span class="font-medium text-sm">Face ID</span>
 
+        </a>
 
     </nav>
 
@@ -81,7 +81,7 @@
                     {{ student.user.get_full_name }}
                 </p>
                 <p class="text-[10px] text-slate-400 truncate">
-                    Sem {{ student.semester }} • {{ student.enrollment_number }}
+                    Sem {{ student.semester }} | {{ student.enrollment_number }}
                 </p>
             </div>
         </div>

@@ -3,14 +3,14 @@
 {% block content %}
 {% include 'partials/faculty_sidebar.html' %}
 
-<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+<div class="flex-1 flex flex-col min-h-screen md:min-h-0 md:h-screen md:overflow-hidden relative bg-[#f8fafc]">
     <header
         class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
         <div class="flex items-center gap-4">
             <button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100 md:hidden mr-2" aria-label="Open sidebar">
                 <i class="fa-solid fa-bars text-xl"></i>
             </button>
-            
+
             <h2 class="text-xl font-bold text-slate-800">Grade Exams</h2>
         </div>
     </header>
@@ -61,7 +61,8 @@
                             </div>
                             <div>
                                 <p class="font-bold text-slate-800">{{ subj.exam_subject.subject.name }}</p>
-                                <p class="text-xs text-slate-500">{{ subj.exam_subject.subject.code }} • Max: {{ subj.exam_subject.total_marks }} marks</p>
+                                <p class="text-xs text-slate-500">{{ subj.exam_subject.subject.code }} • Max: {{
+                                    subj.exam_subject.total_marks }} marks</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-4">

@@ -1,7 +1,3 @@
-"""
-Loads pickled ML models and exposes prediction functions.
-Models are loaded lazily on first call and cached in memory.
-"""
 import os
 import pickle
 import numpy as np
@@ -9,7 +5,6 @@ from django.conf import settings
 
 ML_DIR = os.path.join(settings.BASE_DIR, 'ml_models')
 
-# Cached models (loaded once per process)
 _at_risk_model = None
 _anomaly_model = None
 _text_classifier = None
@@ -23,9 +18,6 @@ def _load_pickle(filename):
         return pickle.load(f)
 
 
-# ===========================
-# 3A: At-Risk Prediction
-# ===========================
 def predict_at_risk(attendance_pct, avg_marks_pct, failures=0, studytime=2,
                     absences=None, age=19, medu=2, fedu=2, traveltime=1,
                     freetime=3, goout=3, health=3):
@@ -43,12 +35,10 @@ def predict_at_risk(attendance_pct, avg_marks_pct, failures=0, studytime=2,
     model = _at_risk_model['model']
     scaler = _at_risk_model['scaler']
 
-    # Map our app's data to UCI features
-    # G1, G2 are semester grades (0-20 scale), convert from percentage
     g1 = int(avg_marks_pct * 20 / 100) if avg_marks_pct else 10
-    g2 = g1  # Use same as approximation
+    g2 = g1
     if absences is None:
-        absences = int((100 - attendance_pct) * 0.5)  # rough approximation
+        absences = int((100 - attendance_pct) * 0.5)
 
     features = np.array([[absences, failures, studytime, g1, g2,
                           age, medu, fedu, traveltime, freetime, goout, health]])
@@ -73,9 +63,6 @@ def predict_at_risk(attendance_pct, avg_marks_pct, failures=0, studytime=2,
     }
 
 
-# ===========================
-# 3B: Attendance Anomaly
-# ===========================
 def detect_anomaly(attendance_pct, max_absent_streak=0, total_classes_missed=0,
                    late_arrivals=0, subjects_below_75=0):
     """
@@ -105,9 +92,6 @@ def detect_anomaly(attendance_pct, max_absent_streak=0, total_classes_missed=0,
     }
 
 
-# ===========================
-# 3C: Text Classification
-# ===========================
 def classify_text(title, body=''):
     """
     Classify a discussion thread text into a tag.

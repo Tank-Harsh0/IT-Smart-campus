@@ -8,9 +8,7 @@ from apps.core.models import TimetableSlot
 from .models import FacultyLeave
 
 
-# ===========================
-# FACULTY: Apply for Leave
-# ===========================
+
 @login_required
 @faculty_required
 def faculty_leave_apply(request):
@@ -49,9 +47,7 @@ def faculty_leave_apply(request):
     return render(request, 'leave/faculty_leave_apply.html')
 
 
-# ===========================
-# FACULTY: Leave History
-# ===========================
+
 @login_required
 @faculty_required
 def faculty_leave_history(request):
@@ -60,9 +56,7 @@ def faculty_leave_history(request):
     return render(request, 'leave/faculty_leave_history.html', {'leaves': leaves})
 
 
-# ===========================
-# ADMIN: All Leave Requests
-# ===========================
+
 @login_required
 @admin_required
 def admin_leave_requests(request):
@@ -81,9 +75,7 @@ def admin_leave_requests(request):
     })
 
 
-# ===========================
-# ADMIN: Approve / Reject
-# ===========================
+
 @login_required
 @admin_required
 def admin_leave_action(request, leave_id):
@@ -111,19 +103,15 @@ def admin_leave_action(request, leave_id):
     return redirect('admin_leave_requests')
 
 
-# ===========================
-# STUDENT: Absent Faculty Today
-# ===========================
+
 @login_required
 @student_required
 def student_faculty_absent(request):
     today = timezone.now().date()
 
-    # Day mapping for timetable lookup
     WEEKDAY_MAP = {0: 'MON', 1: 'TUE', 2: 'WED', 3: 'THU', 4: 'FRI', 5: 'SAT'}
     current_day = WEEKDAY_MAP.get(today.weekday())
 
-    # Find all approved leaves covering today
     approved_leaves = FacultyLeave.objects.filter(
         status='APPROVED',
         start_date__lte=today,
@@ -132,18 +120,15 @@ def student_faculty_absent(request):
 
     absent_faculty_ids = approved_leaves.values_list('faculty_id', flat=True)
 
-    # Get student's semester to find relevant timetable slots
     student = request.user.student_profile
     semester_slots = TimetableSlot.objects.filter(
         batch__classroom__semester=student.semester,
         day=current_day,
     ).select_related('faculty__user', 'subject', 'batch')
 
-    # Separate into affected (cancelled) and unaffected slots
     cancelled_slots = semester_slots.filter(faculty_id__in=absent_faculty_ids)
     active_slots = semester_slots.exclude(faculty_id__in=absent_faculty_ids)
 
-    # Build absent faculty info with their leaves
     absent_faculty_info = []
     for leave in approved_leaves:
         faculty_slots = cancelled_slots.filter(faculty=leave.faculty)

@@ -3,7 +3,7 @@
 {% block content %}
 {% include 'partials/admin_sidebar.html' %}
 
-<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc] min-w-0">
+<div class="flex-1 flex flex-col min-h-screen md:min-h-0 md:h-screen md:overflow-hidden relative bg-[#f8fafc] min-w-0">
 
 
 
@@ -15,9 +15,9 @@
         </a>
     </header>
 
-    <main class="flex-1 overflow-y-auto p-8 custom-scroll flex justify-center">
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll flex justify-center">
         <div class="max-w-4xl w-full">
-            <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200">
+            <div class="bg-white rounded-[2rem] p-4 md:p-8 shadow-sm border border-slate-200">
 
                 <!-- Header Icon -->
                 <div class="mb-8 flex items-center gap-4">

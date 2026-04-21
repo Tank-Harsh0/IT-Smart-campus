@@ -3,13 +3,13 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
+from django.http import JsonResponse
+from django.db import connection
 
-# Smart Redirect View for Root URL
 def root_redirect_view(request):
     if not request.user.is_authenticated:
         return redirect('index')
     
-    # Role-based dispatch
     if request.user.is_admin:
         return redirect('admin_dashboard')
     elif request.user.is_faculty:
@@ -19,6 +19,16 @@ def root_redirect_view(request):
     
     return redirect('login')
 
+def healthz_view(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+            cursor.fetchone()
+        db_ok = True
+    except Exception:
+        db_ok = False
+    status = 200 if db_ok else 503
+    return JsonResponse({'status': 'ok' if db_ok else 'degraded', 'db': db_ok}, status=status)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,5 +44,9 @@ urlpatterns = [
     path('ml/', include('apps.ml.urls')),
 
     # Base
+    path('healthz/', healthz_view, name='healthz'),
     path('', root_redirect_view, name='home'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

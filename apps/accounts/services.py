@@ -20,17 +20,12 @@ def generate_random_password(length=10):
 
 
 def send_credentials_email(user, temp_password, role_type):
-    """
-    Send login credentials to a newly created user.
-    Returns True if email sent successfully, False otherwise.
-    """
     try:
         site_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000')
         login_url = f"{site_url}/accounts/login/"
         
         subject = "Your RCTI IT Department Login Credentials"
         
-        # Plain text message
         message = f"""
 Hello {user.first_name},
 
@@ -71,16 +66,9 @@ RCTI IT Department
 
 
 class BulkUserUploader:
-    """
-    Handles parsing and atomic creation of users from CSV text.
-    """
 
     @staticmethod
     def process_csv(lines, role_type):
-        """
-        lines: list[str] (already decoded text)
-        role_type: User.Role.STUDENT or User.Role.FACULTY
-        """
 
         reader = csv.DictReader(lines)
 
@@ -114,9 +102,6 @@ class BulkUserUploader:
                         must_change_password=True
                     )
 
-                    # -------------------------
-                    # STUDENT
-                    # -------------------------
                     if role_type == User.Role.STUDENT:
                         enrollment = row.get('enrollment_id', '').strip()
                         semester = int(row.get('semester', 1))
@@ -130,9 +115,6 @@ class BulkUserUploader:
                             semester=semester
                         )
 
-                    # -------------------------
-                    # FACULTY
-                    # -------------------------
                     elif role_type == User.Role.FACULTY:
                         employee_id = row.get('employee_id', '').strip()
                         designation = row.get('designation', 'Assistant Professor')
@@ -146,7 +128,6 @@ class BulkUserUploader:
                             designation=designation
                         )
 
-                    # Send credentials email to the new user
                     email_sent = send_credentials_email(user, temp_password, role_type)
 
                     results['created'].append({

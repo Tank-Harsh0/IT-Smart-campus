@@ -99,7 +99,8 @@ border-color: transparent;
         </div>
         <div class="divide-y divide-slate-100 bg-white">
           {% for subject in subjects %}
-          <div class="subject-row flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+          <div
+            class="subject-row flex flex-col md:flex-row md:items-center justify-between px-4 py-4 md:px-6 hover:bg-slate-50 transition-colors gap-3 md:gap-0">
             <div class="flex items-center gap-4">
               <span class="font-code text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md font-semibold">
                 {{ subject.code }}</span>

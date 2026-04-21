@@ -3,9 +3,7 @@ from .models import TimetableSlot, Classroom, Batch
 from apps.subjects.models import Subject
 from apps.faculty.models import Faculty
 
-# ==========================================
-# 1. MANUAL BATCH FORM (Fixes your ImportError)
-# ==========================================
+
 class ManualBatchForm(forms.ModelForm):
     class Meta:
         model = Batch
@@ -15,9 +13,7 @@ class ManualBatchForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'w-full p-3 border rounded-xl', 'placeholder': 'e.g. IT611'}),
         }
 
-# ==========================================
-# 2. MANUAL TIMETABLE FORM
-# ==========================================
+
 class ManualTimetableForm(forms.ModelForm):
     
     semester = forms.IntegerField(
@@ -62,11 +58,9 @@ class ManualTimetableForm(forms.ModelForm):
         end = cleaned_data.get('end_time')
         specific_batch = cleaned_data.get('specific_batch')
 
-        # Logic 1: Time Validation
         if start and end and start >= end:
             self.add_error('end_time', 'End time must be after start time.')
 
-        # Logic 2: Lab Batch Validation
         if slot_type == 'LAB' and not specific_batch:
             self.add_error('specific_batch', 'For Labs, you MUST select a Batch.')
 

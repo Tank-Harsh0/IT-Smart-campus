@@ -7,6 +7,7 @@ from django.utils import timezone
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from django.db.models import Count
 from .models import Faculty
 from apps.accounts.decorators import faculty_required
 from apps.subjects.models import Subject
@@ -22,7 +23,7 @@ from apps.exams.models import Exam, ExamSubject, ExamResult
 @faculty_required
 def faculty_dashboard(request):
     faculty = request.user.faculty_profile
-    student = Student.objects.all().count()
+    student = Student.objects.count()
     subjects = Subject.objects.filter(faculty=faculty)
 
     # Recent assignments created by this faculty
@@ -42,7 +43,6 @@ def faculty_dashboard(request):
 def create_assignment(request, subject_id=None):
     faculty = request.user.faculty_profile
     
-    # If subject_id is provided, use that subject
     if subject_id:
         subject = get_object_or_404(Subject, id=subject_id, faculty=faculty)
     else:
@@ -69,8 +69,7 @@ def create_assignment(request, subject_id=None):
 @faculty_required
 def student_list(request):
     faculty = request.user.faculty_profile
-    # Get all students sorted by semester
-    students = Student.objects.all().order_by('semester', 'enrollment_number')
+    students = Student.objects.select_related('user', 'batch').order_by('semester', 'enrollment_number')
     return render(request, 'faculty/student_list.html', {
         'faculty': faculty,
         'students': students
@@ -81,28 +80,21 @@ def student_list(request):
 def faculty_schedule(request):
     faculty = request.user.faculty_profile
     
-    # Fetch all slots for this faculty, sorted by time
-    all_slots = TimetableSlot.objects.filter(faculty=faculty).order_by('start_time')
+    all_slots = TimetableSlot.objects.filter(faculty=faculty).select_related('subject', 'batch').order_by('start_time')
 
-    # Define the order of days
     days_order = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
     
-    # Transform data into a LIST of dictionaries for the template
-    # We use the variable name 'weekly_schedule' to match the HTML template
     weekly_schedule = []
     
     for day in days_order:
-        # Get slots for this specific day
         day_slots = [slot for slot in all_slots if slot.day == day]
         
-        # Append to the list with the exact keys the template needs
         weekly_schedule.append({
-            'day_name': day,       # Used for the header (e.g., "MON")
-            'slots': day_slots,    # Used for the loop of classes
-            'count': len(day_slots) # Used for the "X Classes" badge
+            'day_name': day,
+            'slots': day_slots,
+            'count': len(day_slots)
         })
 
-    # Pass the list to the template using the correct key 'weekly_schedule'
     return render(request, 'faculty/schedule.html', {'weekly_schedule': weekly_schedule})
 
 @login_required
@@ -168,41 +160,31 @@ def edit_faculty_profile(request):
     })
 @login_required
 def download_schedule_pdf(request):
-    # 1. Get Faculty Profile
     try:
         faculty = request.user.faculty_profile
     except Faculty.DoesNotExist:
         return HttpResponse("Faculty profile not found", status=404)
 
-    # 2. Setup PDF Response
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="Schedule_{faculty.initials}.pdf"'
 
-    # 3. Create PDF Document
     doc = SimpleDocTemplate(response, pagesize=A4)
     elements = []
     styles = getSampleStyleSheet()
 
-    # 4. Title & Header
     title_style = ParagraphStyle('Title', parent=styles['Heading1'], alignment=1, spaceAfter=20)
     elements.append(Paragraph(f"Weekly Schedule - {request.user.get_full_name()} ({faculty.initials})", title_style))
     elements.append(Spacer(1, 10))
 
-    # 5. Prepare Table Data
-    # Headers
     data = [['Day', 'Time', 'Type', 'Subject', 'Batch', 'Room']]
     
-    # Content
     days_order = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
-    slots = TimetableSlot.objects.filter(faculty=faculty)
+    slots = TimetableSlot.objects.filter(faculty=faculty).select_related('subject', 'batch')
     
-    # Sort by Day then Time
-    # (We map MON->0, TUE->1 for sorting)
     day_map = {d: i for i, d in enumerate(days_order)}
     sorted_slots = sorted(slots, key=lambda s: (day_map.get(s.day, 9), s.start_time))
 
     for slot in sorted_slots:
-        # Determine Type based on Batch Name
         slot_type = "Lecture" if "ALL" in slot.batch.name else "Lab"
         
         row = [
@@ -215,55 +197,83 @@ def download_schedule_pdf(request):
         ]
         data.append(row)
 
-    # 6. Style the Table
     table = Table(data, colWidths=[50, 90, 60, 80, 80, 60])
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e293b')), # Header Dark Blue
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e293b')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 12),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f8fafc')), # Rows Light Gray
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f8fafc')),
         ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0')),
     ]))
 
     elements.append(table)
     
-    # 7. Build
     doc.build(elements)
     return response
 
 
-# ===========================
-# FACULTY: Exam List
-# ===========================
+
 @login_required
 @faculty_required
 def faculty_exam_list(request):
     faculty = request.user.faculty_profile
-    my_subjects = Subject.objects.filter(faculty=faculty)
+    my_subject_ids = list(
+        Subject.objects.filter(faculty=faculty).values_list('id', flat=True)
+    )
     today = timezone.now().date()
 
-    # Find exams that have my subjects AND end_date has passed
-    exams_with_subjects = []
+    if not my_subject_ids:
+        return render(request, 'faculty/exams.html', {'exams_with_subjects': []})
+
     all_exams = Exam.objects.filter(
-        exam_subjects__subject__in=my_subjects,
+        exam_subjects__subject_id__in=my_subject_ids,
         end_date__lte=today
     ).distinct().order_by('-end_date')
 
-    for exam in all_exams:
-        # Get only subjects assigned to this faculty
-        my_exam_subjects = ExamSubject.objects.filter(
-            exam=exam, subject__in=my_subjects
-        ).select_related('subject')
+    if not all_exams:
+        return render(request, 'faculty/exams.html', {'exams_with_subjects': []})
 
+    exam_ids = list(all_exams.values_list('id', flat=True))
+    semester_counts = {
+        row['semester']: row['total']
+        for row in (
+            Student.objects.filter(
+                semester__in=all_exams.values_list('semester', flat=True)
+            )
+            .values('semester')
+            .annotate(total=Count('id'))
+        )
+    }
+    graded_map = {
+        (row['exam_id'], row['subject_id']): row['graded']
+        for row in (
+            ExamResult.objects.filter(
+                exam_id__in=exam_ids,
+                subject_id__in=my_subject_ids,
+                marks_obtained__isnull=False
+            )
+            .values('exam_id', 'subject_id')
+            .annotate(graded=Count('id'))
+        )
+    }
+    exam_subjects = (
+        ExamSubject.objects.filter(exam_id__in=exam_ids, subject_id__in=my_subject_ids)
+        .select_related('subject')
+        .order_by('subject__code')
+    )
+    subjects_by_exam = {}
+    for es in exam_subjects:
+        subjects_by_exam.setdefault(es.exam_id, []).append(es)
+
+    exams_with_subjects = []
+    for exam in all_exams:
+        total_students = semester_counts.get(exam.semester, 0)
         subjects_info = []
-        for es in my_exam_subjects:
-            total_students = Student.objects.filter(semester=exam.semester).count()
-            graded = ExamResult.objects.filter(
-                exam=exam, subject=es.subject, marks_obtained__isnull=False
-            ).count()
+        for es in subjects_by_exam.get(exam.id, []):
+            graded = graded_map.get((exam.id, es.subject_id), 0)
             subjects_info.append({
                 'exam_subject': es,
                 'graded': graded,
@@ -281,9 +291,7 @@ def faculty_exam_list(request):
     })
 
 
-# ===========================
-# FACULTY: Grade Students
-# ===========================
+
 @login_required
 @faculty_required
 def faculty_grade_exam(request, exam_id, subject_id):
@@ -292,7 +300,6 @@ def faculty_grade_exam(request, exam_id, subject_id):
     subject = get_object_or_404(Subject, id=subject_id, faculty=faculty)
     exam_subject = get_object_or_404(ExamSubject, exam=exam, subject=subject)
 
-    # Get all students in this semester
     students = Student.objects.filter(semester=exam.semester).order_by('enrollment_number')
 
     if request.method == 'POST':
@@ -322,7 +329,6 @@ def faculty_grade_exam(request, exam_id, subject_id):
         messages.success(request, f"Graded {graded_count} students for {subject.code}!")
         return redirect('faculty_exam_list')
 
-    # GET: pre-fill existing grades
     existing_results = {}
     for er in ExamResult.objects.filter(exam=exam, subject=subject):
         existing_results[er.student_id] = er.marks_obtained

@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-# Assuming these apps exist based on your imports
 from apps.subjects.models import Subject
 from apps.core.models import Batch
 
@@ -26,7 +25,6 @@ class Result(models.Model):
     marks_obtained = models.DecimalField(max_digits=5, decimal_places=2)
     total_marks = models.DecimalField(max_digits=5, decimal_places=2)
 
-    # --- REQUIRED BY VIEW ---
     credits = models.PositiveIntegerField(default=1)
 
     def percentage(self):

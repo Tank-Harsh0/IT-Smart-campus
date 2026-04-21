@@ -3,14 +3,14 @@
 {% block content %}
 {% include 'partials/admin_sidebar.html' %}
 
-<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#f8fafc]">
+<div class="flex-1 flex flex-col min-h-screen md:min-h-0 md:h-screen md:overflow-hidden relative bg-[#f8fafc]">
 
     <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200
                flex items-center px-6 z-40">
-<button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100 md:hidden mr-2" aria-label="Open sidebar">
-                <i class="fa-solid fa-bars text-xl"></i>
-            </button>
-        
+        <button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100 md:hidden mr-2" aria-label="Open sidebar">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+
 
         <div>
             <h2 class="text-xl font-bold font-tech text-slate-800">
@@ -24,7 +24,7 @@
     </header>
 
 
-    <main class="flex-1 overflow-y-auto p-8 custom-scroll">
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll">
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
@@ -83,7 +83,7 @@
             <div
                 class="bg-white p-6 rounded-[1.5rem] border border-slate-200 shadow-sm flex items-center justify-between">
                 <div class="flex items-center gap-4">
-            
+
                     <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-file-csv"></i>
                     </div>
@@ -122,46 +122,47 @@
                 <h3 class="font-bold text-slate-800">Recently Added Users</h3>
                 <button class="text-xs font-bold text-blue-600 hover:underline">View All Users</button>
             </div>
-            <table class="w-full text-left">
-                <thead class="bg-slate-50 border-b border-slate-100">
-                    <tr>
-                        <th class="p-4 pl-6 text-xs font-bold text-slate-500 uppercase">User</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Role</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Email</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase">Joined</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-sm">
-                    {% for user in recent_users %}
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-4 pl-6">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
-                                    {{ user.username|slice:":1" }}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="p-4 pl-6 text-xs font-bold text-slate-500 uppercase">User</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Role</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Email</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase">Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm">
+                        {% for user in recent_users %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-4 pl-6">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+                                        {{ user.username|slice:":1" }}
+                                    </div>
+                                    <span class="font-bold text-slate-800">{{ user.username }}</span>
                                 </div>
-                                <span class="font-bold text-slate-800">{{ user.username }}</span>
-                            </div>
-                        </td>
-                        <td class="p-4">
-                            {% if user.is_student %}
-                            <span
-                                class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase">Student</span>
-                            {% elif user.is_faculty %}
-                            <span
-                                class="px-2 py-1 bg-purple-50 text-purple-600 rounded text-[10px] font-bold uppercase">Faculty</span>
-                            {% else %}
-                            <span
-                                class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">Admin</span>
-                            {% endif %}
-                        </td>
-                        <td class="p-4 text-slate-500">{{ user.email }}</td>
-                        <td class="p-4 text-slate-400 font-code text-xs">{{ user.date_joined|date:"M d, Y" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                            </td>
+                            <td class="p-4">
+                                {% if user.is_student %}
+                                <span
+                                    class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase">Student</span>
+                                {% elif user.is_faculty %}
+                                <span
+                                    class="px-2 py-1 bg-purple-50 text-purple-600 rounded text-[10px] font-bold uppercase">Faculty</span>
+                                {% else %}
+                                <span
+                                    class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">Admin</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-4 text-slate-500">{{ user.email }}</td>
+                            <td class="p-4 text-slate-400 font-code text-xs">{{ user.date_joined|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
     </main>
 </div>
 {% endblock %}

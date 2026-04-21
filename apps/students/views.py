@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Count, Q
 from apps.accounts.decorators import student_required
 from apps.assignments.models import Assignment
 from apps.subjects.models import Subject
@@ -12,18 +13,26 @@ from apps.students.forms import FaceRegistrationForm
 from apps.attendance.models import FaceData, AttendanceRecord, AttendanceSession
 import face_recognition
 
-# ==========================================
-# 1. ATTENDANCE STATS
-# ==========================================
+
 @login_required
 @student_required
 def attendance_stats(request):
     student = request.user.student_profile
-    
-    # 1. Total records for this student
-    subjects = Subject.objects.filter(semester=student.semester)
-    total_classes = AttendanceSession.objects.filter(subject__in=subjects).count()
-    present_count = AttendanceRecord.objects.filter(student=student, is_present=True).count()
+
+    subjects = Subject.objects.filter(semester=student.semester).annotate(
+        total_sessions=Count('attendancesession', distinct=True),
+        present_sessions=Count(
+            'attendancesession__records',
+            filter=Q(
+                attendancesession__records__student=student,
+                attendancesession__records__is_present=True,
+            ),
+            distinct=True,
+        ),
+    )
+
+    total_classes = sum(sub.total_sessions for sub in subjects)
+    present_count = sum(sub.present_sessions for sub in subjects)
     absent_count = total_classes - present_count
     
     percentage = 0
@@ -32,11 +41,10 @@ def attendance_stats(request):
         percentage = int((present_count / total_classes) * 100)
         degrees = int(percentage * 3.6)
 
-    # 2. Subject-wise breakdown
     subject_data = []
     for sub in subjects:
-        sub_total = AttendanceSession.objects.filter(subject=sub).count()
-        sub_present = AttendanceRecord.objects.filter(session__subject=sub, student=student, is_present=True).count()
+        sub_total = sub.total_sessions
+        sub_present = sub.present_sessions
         sub_percent = 0
         if sub_total > 0:
             sub_percent = int((sub_present / sub_total) * 100)
@@ -59,9 +67,7 @@ def attendance_stats(request):
     }
     return render(request, 'students/attendance_stats.html', context)
 
-# ==========================================
-# 2. FACE REGISTRATION
-# ==========================================
+
 @login_required
 @student_required
 def register_face_view(request):
@@ -97,29 +103,23 @@ def register_face_view(request):
         'student': student, 'form': form, 'existing_face': existing_face
     })
 
-# ==========================================
-# 3. STUDENT DASHBOARD (Fixed Assignments)
-# ==========================================
+
 @login_required
 @student_required
 def student_dashboard(request):
     student = request.user.student_profile
     subjects = Subject.objects.filter(semester=student.semester)
 
-    # 1. Fetch Assignments
     pending_assignments = Assignment.objects.filter(
         subject__semester=student.semester
-    ).order_by('due_date')
+    ).select_related('subject').order_by('due_date')
 
-    # 2. Calculate Status (REMOVED Submission Logic)
     for asm in pending_assignments:
-        # Simple Logic: If date passed -> Overdue, else Pending
         if asm.due_date < timezone.now():
             asm.status = 'Overdue'
         else:
             asm.status = 'Pending'
 
-    # 3. Attendance Stats
     total_sessions = AttendanceSession.objects.filter(subject__in=subjects).count()
     present_count = AttendanceRecord.objects.filter(student=student, is_present=True).count()
     
@@ -138,9 +138,7 @@ def student_dashboard(request):
     }
     return render(request, 'students/dashboard.html', context)
 
-# ==========================================
-# 4. ASSIGNMENT LIST (Fixed)
-# ==========================================
+
 @login_required
 @student_required
 def assignment_list(request):
@@ -149,7 +147,9 @@ def assignment_list(request):
     except ObjectDoesNotExist:
         return redirect('student_dashboard')
 
-    assignments = Assignment.objects.filter(subject__semester=student.semester).order_by('due_date')
+    assignments = Assignment.objects.filter(
+        subject__semester=student.semester
+    ).select_related('subject').order_by('due_date')
     
     pending_count = 0
     
@@ -168,9 +168,7 @@ def assignment_list(request):
         'pending_count': pending_count
     })
 
-# ==========================================
-# 5. PROFILE & RESULTS
-# ==========================================
+
 @login_required
 @student_required
 def student_profile(request):
@@ -181,52 +179,51 @@ def student_profile(request):
 def student_results(request):
     student = request.user.student_profile
 
-    from apps.exams.models import ExamResult, Exam
-
-    # Get all published exams relevant to this student's semester
-    published_exams = Exam.objects.filter(
-        is_published=True,
-        semester=student.semester
-    ).order_by('-published_at')
+    from apps.exams.models import ExamResult
 
     exam_results = []
-    for exam in published_exams:
-        results = ExamResult.objects.filter(
-            exam=exam, student=student, marks_obtained__isnull=False
-        ).select_related('subject')
+    all_results = (
+        ExamResult.objects.filter(
+            student=student,
+            exam__is_published=True,
+            exam__semester=student.semester,
+            marks_obtained__isnull=False,
+        )
+        .select_related('exam', 'subject')
+        .order_by('-exam__published_at', '-exam_id', 'subject__code')
+    )
 
-        if not results.exists():
-            continue
+    grouped = {}
+    for r in all_results:
+        entry = grouped.setdefault(
+            r.exam_id,
+            {
+                'exam': r.exam,
+                'subjects': [],
+                'total_obtained': 0,
+                'total_marks': 0,
+            },
+        )
+        obtained = r.marks_obtained
+        out_of = r.total_marks
+        entry['total_obtained'] += obtained
+        entry['total_marks'] += out_of
+        entry['subjects'].append({
+            'subject': r.subject.name,
+            'code': r.subject.code,
+            'marks_obtained': obtained,
+            'total_marks': out_of,
+            'grade': r.grade,
+            'status': 'PASS' if r.is_passed else 'FAIL',
+        })
 
-        subjects = []
-        total_obtained = 0
-        total_marks = 0
-
-        for r in results:
-            obtained = r.marks_obtained
-            out_of = r.total_marks
-            total_obtained += obtained
-            total_marks += out_of
-            subjects.append({
-                'subject': r.subject.name,
-                'code': r.subject.code,
-                'marks_obtained': obtained,
-                'total_marks': out_of,
-                'grade': r.grade,
-                'status': 'PASS' if r.is_passed else 'FAIL',
-            })
-
-        overall_percentage = round(
+    for entry in grouped.values():
+        total_obtained = entry['total_obtained']
+        total_marks = entry['total_marks']
+        entry['overall_percentage'] = round(
             (total_obtained / total_marks) * 100, 2
         ) if total_marks > 0 else 0.00
-
-        exam_results.append({
-            'exam': exam,
-            'subjects': subjects,
-            'total_obtained': total_obtained,
-            'total_marks': total_marks,
-            'overall_percentage': overall_percentage,
-        })
+        exam_results.append(entry)
 
     return render(request, 'students/results.html', {
         'student': student,
@@ -235,48 +232,44 @@ def student_results(request):
 
 
 
-# ==========================================
-# 6. TIMETABLE (Updated to TimetableSlot)
-# ==========================================
+
 @login_required
 @student_required
 def student_timetable(request):
     student = request.user.student_profile
     
-    # 1. Identify Batches (Safe Check)
-    my_batch = student.batch # This might be None
+    my_batch = student.batch
     
     target_batches = []
     
     if my_batch:
-        # Add the student's specific lab batch (e.g., IT611)
         target_batches.append(my_batch.name)
         
-        # Add the whole class lecture batch (e.g., IT61-ALL)
         if my_batch.classroom:
             classroom_name = my_batch.classroom.name 
             lecture_batch_name = f"{classroom_name}-ALL"
             target_batches.append(lecture_batch_name)
     
-    # 2. Fetch Slots (Only if batches exist)
     if target_batches:
-        slots = TimetableSlot.objects.filter(
+        slots = list(TimetableSlot.objects.filter(
             batch__name__in=target_batches
-        ).select_related('subject', 'faculty', 'batch').order_by('start_time')
+        ).select_related('subject', 'faculty__user', 'batch').order_by('day', 'start_time'))
     else:
-        # Return empty list if no batch assigned
-        slots = TimetableSlot.objects.none()
+        slots = []
 
-    # 3. Group by Day
     days_order = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
-    weekly_schedule = []
+    grouped = {day: [] for day in days_order}
+    for slot in slots:
+        if slot.day in grouped:
+            grouped[slot.day].append(slot)
 
+    weekly_schedule = []
     for day in days_order:
-        day_slots = slots.filter(day=day)
+        day_slots = grouped[day]
         weekly_schedule.append({
             'day_name': day,
             'slots': day_slots,
-            'count': day_slots.count()
+            'count': len(day_slots)
         })
     
     return render(request, 'students/schedule.html', {
@@ -286,8 +279,6 @@ def student_timetable(request):
 @login_required
 @student_required
 def student_notifications(request):
-    # Fetch notifications targeted at ALL users or specifically STUDENTS
-    # Ordered by newest first
     notifications = Notification.objects.filter(
         audience__in=['ALL', 'STUDENT']
     ).order_by('-created_at')

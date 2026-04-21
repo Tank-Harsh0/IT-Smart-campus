@@ -11,7 +11,7 @@
 
 <main class="flex-1 overflow-y-auto custom-scroll">
     <header
-        class="h-20 flex items-center justify-between px-8 border-b border-slate-200 bg-white/80 backdrop-blur sticky top-0 z-30">
+        class="h-20 flex items-center justify-between px-4 md:px-8 border-b border-slate-200 bg-white/80 backdrop-blur sticky top-0 z-30">
         <div class="flex items-center gap-3">
             <button id="menuBtn" class="md:hidden text-slate-600"><i class="fa-solid fa-bars text-xl"></i></button>
             <a href="{% url 'discussion_list' %}" class="text-slate-400 hover:text-slate-600 transition-colors">
@@ -65,7 +65,8 @@
                             class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold">STUDENT</span>
                         {% endif %}
                     </div>
-                    <p class="text-xs text-slate-400">{{ discussion.created_at|timesince }} ago • {{ discussion.subject.code }}</p>
+                    <p class="text-xs text-slate-400">{{ discussion.created_at|timesince }} ago • {{
+                        discussion.subject.code }}</p>
                 </div>
                 <div class="ml-auto flex gap-2">
                     {% if discussion.is_pinned %}
@@ -84,7 +85,7 @@
         <!-- Replies Section -->
         <div class="mb-6">
             <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">
-                <i class="fa-solid fa-comments text-blue-500 mr-1.5"></i>{{ replies|length }} 
+                <i class="fa-solid fa-comments text-blue-500 mr-1.5"></i>{{ replies|length }}
                 Repl{{ replies|length|pluralize:"y,ies" }}
             </h3>
             {% if replies %}
@@ -98,7 +99,8 @@
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="font-semibold text-sm text-slate-800">{{ reply.author.get_full_name }}</span>
+                                <span class="font-semibold text-sm text-slate-800">{{ reply.author.get_full_name
+                                    }}</span>
                                 {% if reply.author.is_faculty %}
                                 <span
                                     class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-bold">FACULTY</span>

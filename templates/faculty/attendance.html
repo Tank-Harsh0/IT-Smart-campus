@@ -3,7 +3,7 @@
 {% block content %}
 {% include 'partials/faculty_sidebar.html' %}
 
-<div class="flex-1 flex flex-col h-screen overflow-hidden relative">
+<div class="flex-1 flex flex-col min-h-screen md:min-h-0 md:h-screen md:overflow-hidden relative">
 
     <header
         class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 z-40">
@@ -11,7 +11,7 @@
             <button id="menuBtn" class="p-2 rounded-lg hover:bg-slate-100 md:hidden mr-2" aria-label="Open sidebar">
                 <i class="fa-solid fa-bars text-xl"></i>
             </button>
-            
+
             <h2 class="text-xl font-bold font-tech text-slate-800">Take Attendance</h2>
         </div>
 
@@ -23,9 +23,21 @@
     </header>
 
     <main class="flex-1 overflow-y-auto p-6 custom-scroll">
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-xl text-sm font-medium
+                {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                {% elif message.tags == 'warning' %}bg-amber-50 text-amber-700 border border-amber-200
+                {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <div
-            class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-xl">
+            class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-4 md:p-8 mb-8 text-white relative overflow-hidden shadow-xl">
             <div class="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-[80px] opacity-10"></div>
             <div class="absolute bottom-0 left-20 w-40 h-40 bg-cyan-400 rounded-full blur-[60px] opacity-20"></div>
 
@@ -57,7 +69,7 @@
                 </div>
 
                 <h3 class="text-lg font-bold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">
-                {{ subject.name }}</h3>
+                    {{ subject.name }}</h3>
                 <p class="text-sm text-slate-500 mb-4">{{ subject.code }}</p>
 
                 <div

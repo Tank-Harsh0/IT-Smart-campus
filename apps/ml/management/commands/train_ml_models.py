@@ -1,9 +1,3 @@
-"""
-Management command to train all 3 ML models from scratch.
-Downloads datasets, trains models using scikit-learn, and pickles them.
-
-Usage: python manage.py train_ml_models
-"""
 import os
 import pickle
 import numpy as np
@@ -28,9 +22,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('\n✅ All 3 models trained and saved!\n'))
 
-    # =====================================================
-    # MODEL 3A: Student At-Risk Prediction (Random Forest)
-    # =====================================================
+
     def train_at_risk_model(self):
         self.stdout.write(self.style.HTTP_INFO('\n📊 [3A] Training At-Risk Prediction Model...'))
 
@@ -50,8 +42,6 @@ class Command(BaseCommand):
             self.stdout.write('   Generating synthetic dataset instead...')
             df = self._generate_synthetic_student_data()
 
-        # Feature Engineering
-        # G3 is the final grade (0-20). At-risk = G3 < 10 (fail threshold)
         df['at_risk'] = (df['G3'] < 10).astype(int)
 
         features = ['absences', 'failures', 'studytime', 'G1', 'G2',
@@ -61,28 +51,23 @@ class Command(BaseCommand):
         X = df[features].values
         y = df['at_risk'].values
 
-        # Scale features
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
-        # Train/Test split
         X_train, X_test, y_train, y_test = train_test_split(
             X_scaled, y, test_size=0.2, random_state=42, stratify=y
         )
 
-        # Train Random Forest
         model = RandomForestClassifier(
             n_estimators=100, max_depth=8, random_state=42, class_weight='balanced'
         )
         model.fit(X_train, y_train)
 
-        # Evaluate
         y_pred = model.predict(X_test)
         acc = accuracy_score(y_test, y_pred)
         self.stdout.write(f'   Accuracy: {acc:.2%}')
         self.stdout.write(f'   Features: {features}')
 
-        # Save model + scaler + feature names
         model_data = {
             'model': model,
             'scaler': scaler,
@@ -96,7 +81,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'   ✅ Saved to {path}'))
 
     def _generate_synthetic_student_data(self):
-        """Fallback: generate synthetic data matching UCI format."""
         np.random.seed(42)
         n = 500
         data = {
@@ -113,7 +97,6 @@ class Command(BaseCommand):
             'G1': np.random.randint(0, 20, n),
             'G2': np.random.randint(0, 20, n),
         }
-        # G3 correlated with G1, G2, studytime, inversely with absences/failures
         data['G3'] = np.clip(
             (data['G1'] * 0.3 + data['G2'] * 0.5 +
              data['studytime'] * 0.5 - data['failures'] * 3 -
@@ -122,21 +105,17 @@ class Command(BaseCommand):
         )
         return pd.DataFrame(data)
 
-    # =====================================================
-    # MODEL 3B: Attendance Anomaly Detection (Isolation Forest)
-    # =====================================================
+
     def train_anomaly_model(self):
         self.stdout.write(self.style.HTTP_INFO('\n🔍 [3B] Training Attendance Anomaly Model...'))
 
         from sklearn.ensemble import IsolationForest
         from sklearn.preprocessing import StandardScaler
 
-        # Generate realistic synthetic attendance data
         np.random.seed(42)
         n_normal = 400
         n_anomaly = 50
 
-        # Normal students: high attendance, low streaks
         normal = pd.DataFrame({
             'attendance_pct': np.random.normal(78, 10, n_normal).clip(40, 100),
             'max_absent_streak': np.random.randint(0, 5, n_normal),
@@ -145,7 +124,6 @@ class Command(BaseCommand):
             'subjects_below_75': np.random.randint(0, 2, n_normal),
         })
 
-        # Anomalous students: low attendance, long streaks
         anomaly = pd.DataFrame({
             'attendance_pct': np.random.normal(35, 15, n_anomaly).clip(0, 60),
             'max_absent_streak': np.random.randint(5, 20, n_anomaly),
@@ -159,22 +137,18 @@ class Command(BaseCommand):
 
         self.stdout.write(f'   Synthetic dataset: {len(df)} records ({n_normal} normal, {n_anomaly} anomalous)')
 
-        # Scale
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(df.values)
 
-        # Train Isolation Forest
         model = IsolationForest(
             n_estimators=100, contamination=0.1, random_state=42
         )
         model.fit(X_scaled)
 
-        # Evaluate on training data
         preds = model.predict(X_scaled)
         n_detected = (preds == -1).sum()
         self.stdout.write(f'   Anomalies detected: {n_detected}/{len(df)}')
 
-        # Save
         model_data = {
             'model': model,
             'scaler': scaler,
@@ -186,9 +160,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(f'   ✅ Saved to {path}'))
 
-    # =====================================================
-    # MODEL 3C: Discussion Auto-Tagger (TF-IDF + Naive Bayes)
-    # =====================================================
+
     def train_text_classifier(self):
         self.stdout.write(self.style.HTTP_INFO('\n💬 [3C] Training Discussion Auto-Tagger...'))
 
@@ -198,7 +170,6 @@ class Command(BaseCommand):
         from sklearn.model_selection import train_test_split
         from sklearn.metrics import accuracy_score
 
-        # Build a labeled training dataset with academic Q&A patterns
         data = self._build_text_dataset()
         df = pd.DataFrame(data, columns=['text', 'tag'])
 
@@ -212,7 +183,6 @@ class Command(BaseCommand):
             X, y, test_size=0.2, random_state=42, stratify=y
         )
 
-        # Build pipeline: TF-IDF -> Naive Bayes
         pipeline = Pipeline([
             ('tfidf', TfidfVectorizer(max_features=5000, ngram_range=(1, 2), stop_words='english')),
             ('clf', MultinomialNB(alpha=0.1)),
@@ -220,12 +190,10 @@ class Command(BaseCommand):
 
         pipeline.fit(X_train, y_train)
 
-        # Evaluate
         y_pred = pipeline.predict(X_test)
         acc = accuracy_score(y_test, y_pred)
         self.stdout.write(f'   Accuracy: {acc:.2%}')
 
-        # Save
         path = os.path.join(ML_DIR, 'text_classifier.pkl')
         with open(path, 'wb') as f:
             pickle.dump(pipeline, f)
@@ -233,10 +201,8 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'   ✅ Saved to {path}'))
 
     def _build_text_dataset(self):
-        """Generate a labeled text dataset for academic discussion classification."""
         dataset = []
 
-        # QUESTION - Asking for help, how-to
         questions = [
             "How do I implement a binary search tree in Python?",
             "What is the difference between stack and queue?",
@@ -280,7 +246,6 @@ class Command(BaseCommand):
             "How to deploy a Django application to production?",
         ]
 
-        # DOUBT - Confusion, clarification needed, not understanding
         doubts = [
             "I'm confused about the difference between abstract class and interface",
             "I don't understand why my code gives segmentation fault",
@@ -324,7 +289,6 @@ class Command(BaseCommand):
             "I'm confused about how event loop works in JavaScript",
         ]
 
-        # RESOURCE - Sharing materials, notes, links, references
         resources = [
             "Here are my notes on data structures and algorithms PDF",
             "Sharing the textbook solution manual for chapter 5",
@@ -368,7 +332,6 @@ class Command(BaseCommand):
             "Here are additional reference problems for graph theory concepts",
         ]
 
-        # ANNOUNCEMENT - Class updates, schedule changes, deadline reminders
         announcements = [
             "Tomorrow class has been cancelled due to faculty meeting",
             "The assignment submission deadline has been extended to Friday",

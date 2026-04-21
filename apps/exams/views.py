@@ -15,9 +15,7 @@ def is_admin(user):
     return user.is_superuser
 
 
-# ===========================
-# ADMIN: Exam List
-# ===========================
+
 @login_required
 @user_passes_test(is_admin)
 def exam_list(request):
@@ -25,9 +23,7 @@ def exam_list(request):
     return render(request, 'exams/exam_list.html', {'exams': exams})
 
 
-# ===========================
-# ADMIN: Create Exam
-# ===========================
+
 @login_required
 @user_passes_test(is_admin)
 def create_exam(request):
@@ -42,7 +38,6 @@ def create_exam(request):
             messages.error(request, "All fields are required.")
             return redirect('create_exam')
 
-        # Create exam
         exam = Exam.objects.create(
             name=name,
             exam_type=exam_type,
@@ -51,7 +46,6 @@ def create_exam(request):
             end_date=end_date
         )
 
-        # Add subjects with marks
         subject_ids = request.POST.getlist('subjects')
         for sid in subject_ids:
             marks = request.POST.get(f'marks_{sid}', '20')
@@ -68,7 +62,6 @@ def create_exam(request):
         messages.success(request, f"Exam '{exam.name}' created with {len(subject_ids)} subjects!")
         return redirect('exam_detail', exam_id=exam.id)
 
-    # GET: load subjects for template
     subjects_by_semester = {}
     for sem in range(1, 7):
         subjects_by_semester[sem] = list(
@@ -80,16 +73,13 @@ def create_exam(request):
     })
 
 
-# ===========================
-# ADMIN: Exam Detail
-# ===========================
+
 @login_required
 @user_passes_test(is_admin)
 def exam_detail(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     exam_subjects = exam.exam_subjects.select_related('subject').all()
 
-    # Build subject-wise grading progress
     subject_progress = []
     total_students = Student.objects.filter(semester=exam.semester).count()
 
@@ -97,7 +87,6 @@ def exam_detail(request, exam_id):
         graded = ExamResult.objects.filter(
             exam=exam, subject=es.subject, marks_obtained__isnull=False
         ).count()
-        # Check if schedule exists
         schedule = getattr(es, 'schedule', None)
         try:
             schedule = es.schedule
@@ -120,9 +109,7 @@ def exam_detail(request, exam_id):
     })
 
 
-# ===========================
-# ADMIN: Publish / Unpublish
-# ===========================
+
 @login_required
 @user_passes_test(is_admin)
 def publish_exam(request, exam_id):
@@ -145,9 +132,7 @@ def unpublish_exam(request, exam_id):
     return redirect('exam_detail', exam_id=exam.id)
 
 
-# ===========================
-# ADMIN: Edit Exam
-# ===========================
+
 @login_required
 @user_passes_test(is_admin)
 def edit_exam(request, exam_id):
@@ -161,16 +146,13 @@ def edit_exam(request, exam_id):
         exam.end_date = request.POST.get('end_date')
         exam.save()
 
-        # Sync subjects
         submitted_ids = set(map(int, request.POST.getlist('subjects')))
         existing_es = {es.subject_id: es for es in exam.exam_subjects.all()}
 
-        # Remove unchecked
         for sid, es in existing_es.items():
             if sid not in submitted_ids:
                 es.delete()
 
-        # Add/update
         for sid in submitted_ids:
             marks = request.POST.get(f'marks_{sid}', '20')
             marks_val = int(marks) if marks else 20
@@ -189,14 +171,12 @@ def edit_exam(request, exam_id):
         messages.success(request, f"Exam '{exam.name}' updated!")
         return redirect('exam_detail', exam_id=exam.id)
 
-    # GET: load subjects + existing selections
     subjects_by_semester = {}
     for sem in range(1, 7):
         subjects_by_semester[sem] = list(
             Subject.objects.filter(semester=sem).order_by('code').values('id', 'name', 'code')
         )
 
-    # Existing exam subjects with marks
     existing_subjects = {}
     for es in exam.exam_subjects.all():
         existing_subjects[es.subject_id] = es.total_marks
@@ -208,9 +188,7 @@ def edit_exam(request, exam_id):
     })
 
 
-# ===========================
-# ADMIN: Exam Timetable
-# ===========================
+
 @login_required
 @user_passes_test(is_admin)
 def exam_timetable(request, exam_id):
@@ -229,7 +207,7 @@ def exam_timetable(request, exam_id):
                 from datetime import date as dt_date
                 parsed_date = dt_date.fromisoformat(date_val)
                 if parsed_date < exam.start_date or parsed_date > exam.end_date:
-                    continue  # skip dates outside exam range
+                    continue
                 ExamSchedule.objects.update_or_create(
                     exam_subject=es,
                     defaults={
@@ -244,7 +222,6 @@ def exam_timetable(request, exam_id):
         messages.success(request, f"Timetable saved for {saved} subjects!")
         return redirect('exam_detail', exam_id=exam.id)
 
-    # GET: build data with existing schedules
     subjects_data = []
     for es in exam_subjects:
         try:

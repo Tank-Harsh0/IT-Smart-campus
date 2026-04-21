@@ -70,8 +70,9 @@
                 {{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}
             </div>
             <div class="overflow-hidden">
-                <p class="text-sm font-bold truncate group-hover:text-blue-300 transition-colors">{{
-                    request.user.get_full_name }}</p>
+                <p class="text-sm font-bold truncate group-hover:text-blue-300 transition-colors">
+                    {{ request.user.get_full_name }}
+                </p>
                 <p class="text-xs text-slate-400 truncate">{{ request.user.faculty_profile.designation }}</p>
             </div>
         </a>

@@ -21,14 +21,8 @@ from apps.core.models import Classroom, Batch, TimetableSlot
 logger = logging.getLogger(__name__)
 
 
-# =========================
-# Helpers
-# =========================
-# =========================
-# Landing Page (Index)
-# =========================
+
 def index(request):
-    # 1. If user is logged in, redirect to their specific dashboard
     if request.user.is_authenticated:
         if request.user.is_superuser:
             return redirect('admin_dashboard')
@@ -37,16 +31,13 @@ def index(request):
         elif hasattr(request.user, 'faculty_profile'):
             return redirect('faculty_dashboard')
     
-    # 2. If not logged in, show the Landing Page with public notices (audience=ALL)
     public_notices = Notification.objects.filter(audience='ALL').order_by('-created_at')[:5]
     
     return render(request, 'index.html', {
         'public_notices': public_notices,
     })
 
-# =========================
-# Public Pages (No Login Required)
-# =========================
+
 def faculty_public(request):
     # Load all faculty members with their user data
     faculty_list = Faculty.objects.select_related('user').all()
@@ -98,9 +89,7 @@ def generate_temp_password(length=10):
     return ''.join(random.choice(chars) for _ in range(length))
 
 
-# =========================
-# Admin Dashboard
-# =========================
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -113,10 +102,6 @@ def admin_dashboard(request):
     }
     return render(request, 'core/admin_dashboard.html', context)
 
-
-# =========================
-# Bulk Upload Users (CSV)
-# =========================
 
 @login_required
 @user_passes_test(is_admin)
@@ -188,10 +173,6 @@ def upload_students(request):
     return render(request, 'core/Upload_student.html')
 
 
-# =========================
-# Bulk Upload Subjects (CSV)
-# =========================
-
 @login_required
 @user_passes_test(is_admin)
 def upload_subjects(request):
@@ -230,10 +211,6 @@ def upload_subjects(request):
     return render(request, 'core/Upload_subjects.html')
 
 
-# =========================
-# List Views
-# =========================
-
 @login_required
 @user_passes_test(is_admin)
 def student_list(request):
@@ -252,10 +229,6 @@ def subject_list(request):
     subjects = Subject.objects.order_by('semester', 'code')
     return render(request, 'core/subjects.html', {'subjects': subjects})
 
-
-# =========================
-# Download Samples
-# =========================
 
 @login_required
 @user_passes_test(is_admin)
@@ -278,10 +251,6 @@ def download_sample_subjects_csv(request):
 
 
 
-# =========================
-# Upload Timetable (PDF)
-# =========================
-
 @login_required
 @user_passes_test(is_admin)
 def upload_timetable(request):
@@ -300,7 +269,6 @@ def upload_timetable(request):
         clear_existing = request.POST.get('clear_existing') == 'on'
 
         try:
-            # 1. Parse PDF
             slots_data, parse_warnings = parse_timetable_pdf(pdf_file)
 
             if not slots_data:
@@ -309,12 +277,10 @@ def upload_timetable(request):
                     messages.warning(request, w)
                 return redirect('upload_timetable')
 
-            # 2. Clear old data if requested
             if clear_existing:
                 deleted_count = TimetableSlot.objects.all().delete()[0]
                 logger.info(f"Cleared {deleted_count} existing timetable slots")
 
-            # 3. Process each parsed slot
             created_count = 0
             updated_count = 0
             skipped = []
@@ -322,13 +288,11 @@ def upload_timetable(request):
             for slot in slots_data:
                 try:
                     with transaction.atomic():
-                        # a. Classroom (get or create)
                         classroom, _ = Classroom.objects.get_or_create(
                             name=slot['class_name'],
                             defaults={'semester': slot['semester']}
                         )
 
-                        # b. Batch — Labs get specific batch (IT121), Lectures get CLASSNAME-ALL
                         if slot.get('is_lab') and slot.get('batch_code'):
                             batch_name = slot['batch_code']
                         else:
@@ -338,14 +302,12 @@ def upload_timetable(request):
                             defaults={'classroom': classroom}
                         )
 
-                        # c. Subject (match by code prefix)
                         subject = Subject.objects.filter(
                             code__icontains=slot['subject_code'],
                             semester=slot['semester']
                         ).first()
 
                         if not subject:
-                            # Auto-create subject as placeholder
                             subject, _ = Subject.objects.get_or_create(
                                 code=slot['subject_code'],
                                 defaults={
@@ -354,7 +316,6 @@ def upload_timetable(request):
                                 }
                             )
 
-                        # d. Faculty (match by initials)
                         faculty = Faculty.objects.filter(
                             initials__iexact=slot['initials']
                         ).first()
@@ -365,7 +326,6 @@ def upload_timetable(request):
                             )
                             continue
 
-                        # e. Create or update TimetableSlot
                         _, was_created = TimetableSlot.objects.update_or_create(
                             day=slot['day'],
                             start_time=slot['start_time'],
@@ -386,7 +346,6 @@ def upload_timetable(request):
                 except Exception as e:
                     skipped.append(f"{slot['day']} {slot['start_time']}: {e}")
 
-            # 4. Build results
             results = {
                 'created': created_count,
                 'updated': updated_count,
@@ -411,7 +370,7 @@ def upload_timetable(request):
     return render(request, 'core/upload_timetable.html', {'results': results})
 
 
-# ... keep upload_batches ...
+
 @login_required
 @user_passes_test(is_admin)
 def upload_batches(request):
@@ -434,12 +393,9 @@ def auto_generate_batches(request):
     created_count = 0
     
     for classroom in classrooms:
-        # We want 3 batches per class: 1, 2, 3
         for i in range(1, 4):
-            # Name Logic: ClassName + Number (e.g. IT11 + 1 = IT111)
             batch_name = f"{classroom.name}{i}"
             
-            # Create Batch if it doesn't exist
             _, created = Batch.objects.get_or_create(
                 name=batch_name,
                 defaults={'classroom': classroom}
@@ -458,7 +414,6 @@ def load_subjects(request):
 
 def load_classrooms(request):
     semester = request.GET.get('semester')
-    # Fetch classrooms matching the semester
     classrooms = Classroom.objects.filter(semester=semester).values('id', 'name')
     return JsonResponse(list(classrooms), safe=False)
 def load_batches(request):

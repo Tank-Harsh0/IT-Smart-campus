@@ -6,9 +6,7 @@ from apps.subjects.models import Subject
 from .models import Discussion, Reply
 
 
-# ===========================
-# Discussion List (All roles)
-# ===========================
+
 @login_required
 def discussion_list(request):
     subject_id = request.GET.get('subject')
@@ -17,7 +15,6 @@ def discussion_list(request):
     if subject_id:
         discussions = discussions.filter(subject_id=subject_id)
 
-    # Get subjects for the filter dropdown
     subjects = Subject.objects.all()
 
     return render(request, 'discussion/discussion_list.html', {
@@ -27,9 +24,6 @@ def discussion_list(request):
     })
 
 
-# ===========================
-# Create Thread (Student/Faculty)
-# ===========================
 @login_required
 def discussion_create(request):
     subjects = Subject.objects.all()
@@ -45,8 +39,7 @@ def discussion_create(request):
 
         subject = get_object_or_404(Subject, id=subject_id)
 
-        # Auto-tag using ML model
-        tag = 'Question'  # default
+        tag = 'Question'
         try:
             from apps.ml.predictor import classify_text
             result = classify_text(title, body)
@@ -67,9 +60,6 @@ def discussion_create(request):
     return render(request, 'discussion/discussion_create.html', {'subjects': subjects})
 
 
-# ===========================
-# Discussion Detail + Replies
-# ===========================
 @login_required
 def discussion_detail(request, discussion_id):
     discussion = get_object_or_404(
@@ -78,7 +68,6 @@ def discussion_detail(request, discussion_id):
     )
     replies = discussion.replies.select_related('author').all()
 
-    # POST: Add a reply
     if request.method == 'POST' and not discussion.is_closed:
         body = request.POST.get('body', '').strip()
         if body:
@@ -96,9 +85,6 @@ def discussion_detail(request, discussion_id):
     })
 
 
-# ===========================
-# Pin / Unpin (Faculty only)
-# ===========================
 @login_required
 @faculty_required
 def discussion_pin(request, discussion_id):
@@ -110,9 +96,6 @@ def discussion_pin(request, discussion_id):
     return redirect('discussion_detail', discussion_id=discussion.id)
 
 
-# ===========================
-# Close / Reopen (Faculty only)
-# ===========================
 @login_required
 @faculty_required
 def discussion_close(request, discussion_id):
