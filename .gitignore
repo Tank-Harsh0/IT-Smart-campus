@@ -7,6 +7,7 @@ __pycache__/
 *.pyd
 *.log
 *.sqlite3
+db.sqlite3
 
 # Django static & media
 media/
@@ -16,6 +17,7 @@ staticfiles/
 # Virtual Environment (CRITICAL)
 # =========================
 env/
+venv/
 pyvenv.cfg
 Scripts/
 Lib/
@@ -44,13 +46,17 @@ _dlib_pybind11*
 .env
 *.pem
 *.key
+
 # =========================
-# OS / Editor
+# OS / Editor / Archives
 # =========================
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+*.zip
+*.tar.gz
+*.rar
 
 # =========================
 # Uploaded files (keep DB clean)

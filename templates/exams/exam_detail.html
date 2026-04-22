@@ -27,8 +27,8 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                 <p class="text-xs text-slate-400 font-bold uppercase mb-1">Duration</p>
-                <p class="text-sm font-bold text-slate-800">{{ exam.start_date|date:"M d" }} - {{ exam.end_date|date:"M
-                    d, Y" }}</p>
+                <p class="text-sm font-bold text-slate-800">{{ exam.start_date|date:"M d" }} -
+                    {{ exam.end_date|date:"M d, Y" }}</p>
             </div>
             <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
                 <p class="text-xs text-slate-400 font-bold uppercase mb-1">Subjects</p>
@@ -118,7 +118,8 @@
                                 <div class="w-full bg-slate-100 rounded-full h-2">
                                     <div class="h-2 rounded-full transition-all duration-500
                                          {% if sp.percent == 100 %}bg-green-500{% elif sp.percent > 0 %}bg-amber-400{% else %}bg-slate-200{% endif %}"
-                                        style="width: {{ sp.percent }}%"></div>
+                                        style="width: {{ sp.percent }} %">
+                                    </div>
                                 </div>
                             </td>
                         </tr>

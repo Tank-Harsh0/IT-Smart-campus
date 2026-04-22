@@ -14,37 +14,22 @@ A comprehensive Django-based Smart Campus Management System designed for modern 
 
 ---
 
-## 🛠️ Technology Stack
+## 🚀 Easy Setup Guide for Evaluation
 
-* **Backend Framework:** Django (Python 3.9+)
-* **Database:** MySQL (via `PyMySQL` driver)
-* **Machine Learning:** `scikit-learn`, `numpy` (for predictive analytics and attendance)
-* **Frontend:** HTML5, CSS3, JavaScript (Django Templates)
-* **PDF Processing:** `pdfplumber`, `reportlab` (for parsing timetables and generating reports)
-
----
-
-## 🚀 Setup & Installation Guide
-
-Follow these steps to set up the project on your local machine.
+Follow these step-by-step instructions to set up and evaluate the project on your local machine.
 
 ### 1. Prerequisites
-
 Ensure you have the following installed on your system:
 * **Python 3.9** or higher
-* **MySQL Server** (or XAMPP for a local MySQL instance)
-* **Git** (optional, for cloning)
+* **MySQL Server** (You can use XAMPP or any local MySQL instance)
 
 ### 2. Environment Setup
 
-1. **Navigate to the project directory:**
-   Open your terminal/command prompt and navigate to the extracted project folder.
-
+1. **Extract the Project:** Unzip the submitted project folder and open a terminal (or command prompt) inside it.
 2. **Create a Virtual Environment:**
    ```bash
    python -m venv env
    ```
-
 3. **Activate the Virtual Environment:**
    * **Windows:**
      ```bash
@@ -54,7 +39,6 @@ Ensure you have the following installed on your system:
      ```bash
      source env/bin/activate
      ```
-
 4. **Install Dependencies:**
    ```bash
    pip install -r requirements.txt
@@ -62,58 +46,25 @@ Ensure you have the following installed on your system:
 
 ### 3. Database Configuration
 
-1. Start your local MySQL Server (e.g., via XAMPP Control Panel).
-2. Create a new database named `smart_campus_db`:
-   ```sql
-   CREATE DATABASE smart_campus_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
-3. In the root of the project (where `manage.py` is located), create a `.env` file with your specific database credentials. 
+1. Start your local MySQL Server (e.g., using XAMPP Control Panel).
+2. Open your MySQL client (like phpMyAdmin) and create a new database named **`smart_campus_db`**.
+3. Create a `.env` file in the main project folder (where `manage.py` is). You can copy the contents from `.env.example` to create this file. 
+   *(Note: The system connects using the default MySQL user `root` with no password. If your MySQL has a password, update it in the `.env` file).*
 
-**Example `.env` configuration:**
-```ini
-DEBUG=True
-SECRET_KEY=your-secure-secret-key-here
-ALLOWED_HOSTS=localhost,127.0.0.1
+### 4. Apply Database Migrations & Initial Data
 
-# Database Settings
-DB_NAME=smart_campus_db
-DB_USER=root
-DB_PASSWORD=
-DB_HOST=localhost
-DB_PORT=3306
-
-# Email Settings (Required for Welcome/Credential Emails)
-EMAIL_HOST_USER=your_email@gmail.com
-EMAIL_HOST_PASSWORD=your_app_password
-DEFAULT_FROM_EMAIL=your_email@gmail.com
-```
-
-### 4. Database Migrations
-
-Run the following commands to apply the database schema:
+Run the following commands sequentially to apply the database schema, populate the subjects, and generate the Machine Learning models:
 
 ```bash
 python manage.py makemigrations
 python manage.py migrate
+python manage.py populate_subjects
+python manage.py train_ml_models
 ```
 
-### 5. Populate Initial Data & Machine Learning Models
+### 5. Create Superuser (Admin Account)
 
-1. **Populate Subjects:**
-   Run the custom management command to seed the GTU IT Department subjects into the database.
-   ```bash
-   python manage.py populate_subjects
-   ```
-
-2. **Train Machine Learning Models:**
-   Generate the initial `.pkl` files required for the ML-powered analytics and attendance systems.
-   ```bash
-   python manage.py train_ml_models
-   ```
-
-### 6. Create Superuser (Admin Account)
-
-Create an administrative account to access the Django Admin panel and root dashboard.
+Create an administrative account to access the root dashboard:
 ```bash
 python manage.py createsuperuser
 ```
@@ -129,15 +80,15 @@ Start the local Django development server:
 python manage.py runserver
 ```
 
-* **Main Portal:** Open `http://127.0.0.1:8000/` in your browser.
-* **Django Admin:** Open `http://127.0.0.1:8000/admin/` to manage raw database tables.
+* **Main Portal:** [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+* **Django Admin:** [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
 
 ---
 
 ## 📂 Project Structure
 
-* **`apps/`**: Contains all modular Django applications (`accounts`, `core`, `exams`, `students`, `ml`, etc.)
-* **`config/`**: Main Django configuration files (`settings.py`, `urls.py`, `wsgi.py`, `asgi.py`)
+* **`apps/`**: Contains all modular Django applications (accounts, exams, students, ml, etc.)
+* **`config/`**: Main Django configuration files.
 * **`ml_models/`**: Stores serialized (`.pkl`) machine learning models generated by the training scripts.
 * **`media/`**: Stores user-uploaded content (e.g., PDFs, profile pictures).
 * **`templates/`**: Global HTML templates.

@@ -35,8 +35,8 @@
             <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600 rounded-full blur-[80px] opacity-30"></div>
             <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <p class="text-blue-200 font-bold text-xs uppercase tracking-widest mb-1">Today is {% now "l, F jS"
-                        %}</p>
+                    <p class="text-blue-200 font-bold text-xs uppercase tracking-widest mb-1">Today is
+                        {% now "l, F jS" %}</p>
                     <h1 class="text-3xl font-bold font-tech">Your Weekly Schedule</h1>
                 </div>
             </div>
@@ -69,8 +69,8 @@
                         <div class="pl-3">
                             <div class="flex justify-between items-start mb-2">
                                 <h4 class="font-bold text-slate-800 text-sm">{{ slot.subject.name }}
-                                    <span class="block text-[10px] text-slate-400 font-normal mt-0.5">{{
-                                        slot.subject.code }}</span>
+                                    <span class="block text-[10px] text-slate-400 font-normal mt-0.5">
+                                        {{ slot.subject.code }}</span>
                                 </h4>
                                 <div class="text-right bg-white px-2 py-1 rounded-lg border border-slate-100 shadow-sm">
                                     <p class="text-xs font-bold text-slate-700">{{ slot.start_time|date:"H:i" }}</p>
@@ -108,8 +108,8 @@
                         <div class="pl-3">
                             <div class="flex justify-between items-start mb-2">
                                 <h4 class="font-bold text-slate-800 text-sm">{{ slot.subject.name }}
-                                    <span class="block text-[10px] text-slate-400 font-normal mt-0.5">{{
-                                        slot.subject.code }}</span>
+                                    <span class="block text-[10px] text-slate-400 font-normal mt-0.5">
+                                        {{ slot.subject.code }}</span>
                                 </h4>
                                 <div class="text-right bg-white px-2 py-1 rounded-lg border border-slate-100 shadow-sm">
                                     <p class="text-xs font-bold text-slate-700">{{ slot.start_time|date:"H:i" }}</p>

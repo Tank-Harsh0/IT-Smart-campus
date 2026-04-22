@@ -112,8 +112,8 @@
                     <div class="flex-1">
                         <div class="flex justify-between items-start">
                             <h4 class="font-bold text-slate-800">{{ notif.title }}</h4>
-                            <span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded">{{
-                                notif.created_at|date:"M d, H:i" }}</span>
+                            <span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded">
+                                {{ notif.created_at|date:"M d, H:i" }}</span>
                         </div>
                         <p class="text-sm text-slate-500 mt-1 mb-3">{{ notif.message }}</p>
 

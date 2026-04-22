@@ -65,8 +65,8 @@
                             class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold">STUDENT</span>
                         {% endif %}
                     </div>
-                    <p class="text-xs text-slate-400">{{ discussion.created_at|timesince }} ago • {{
-                        discussion.subject.code }}</p>
+                    <p class="text-xs text-slate-400">{{ discussion.created_at|timesince }} ago •
+                        {{ discussion.subject.code }}</p>
                 </div>
                 <div class="ml-auto flex gap-2">
                     {% if discussion.is_pinned %}
@@ -99,8 +99,8 @@
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="font-semibold text-sm text-slate-800">{{ reply.author.get_full_name
-                                    }}</span>
+                                <span class="font-semibold text-sm text-slate-800">
+                                    {{ reply.author.get_full_name }}</span>
                                 {% if reply.author.is_faculty %}
                                 <span
                                     class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-bold">FACULTY</span>
