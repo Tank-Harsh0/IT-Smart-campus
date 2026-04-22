@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     'apps.assignments',
     'apps.notifications',
     'apps.exams',
-    'apps.fees',
     'apps.leave',
     'apps.discussion',
     'apps.ml',
